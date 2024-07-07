@@ -27,3 +27,7 @@ After 6 years of waiting, it finally exists. This library was inspired by the am
 
 
 If none of these fit your criteria I highly encourage you to use the aiomultiprocessing library, it's way faster and has smarter exiting techniques.
+
+## TODOS
+- [] Youtube Video about how to use
+- [] Pypi pakage (Hopefully the name has not been claimed yet by anyone)
