@@ -30,4 +30,4 @@ If none of these fit your criteria I highly encourage you to use the aiomultipro
 
 ## TODOS
 - [ ] Youtube Video about how to use
-- [x] Pypi pakage (Hopefully the name has not been claimed yet by anyone)
+- [x] Pypi pakage (Just Released this recently so that I come up with a workflow soon)
