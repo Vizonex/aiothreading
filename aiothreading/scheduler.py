@@ -1,6 +1,6 @@
-
-
-# Forked by Vizonex
+# Copyright 2022 Amy Reese
+# Licensed under the MIT license
+# 2024 Modified by Vizonex
 
 import itertools
 from abc import ABC, abstractmethod
