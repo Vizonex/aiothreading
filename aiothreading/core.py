@@ -1,13 +1,13 @@
 # Copyright 2022 Amy Reese
 # Licensed under the MIT license
-# 2024 Modified by Vizonex 
+# 2024 Modified by Vizonex
 
 import asyncio
 import logging
 import threading
-from typing import Any, Callable, Dict, Optional, Sequence, Generic
-from .types import Context, R, Unit
+from typing import Any, Callable, Dict, Optional, Sequence
 
+from .types import Context, R, Unit
 
 log = logging.getLogger(__name__)
 
@@ -117,12 +117,12 @@ class Thread:
             # clean exits...
             result: R = loop.run_until_complete(unit.target(*unit.args, **unit.kwargs))
 
-            # Shudown everything after so that nothing complains back to us with a RuntimeWarning 
+            # Shudown everything after so that nothing complains back to us with a RuntimeWarning
             asyncio.set_event_loop(None)
             loop.close()
             return result
-        
-        except BaseException as e:
+
+        except Exception as e:
             log.exception(f"aio thread {threading.get_ident()} failed")
             # Shutdown the loop if there was indeed failure...
             try:
@@ -195,3 +195,5 @@ class Worker(Thread):
             raise ValueError("coroutine not completed")
 
         return self.unit.namespace.result
+
+
