@@ -1,13 +1,13 @@
 # Copyright 2022 Amy Reese
 # Licensed under the MIT license
-# 2024 Modified by Vizonex 
+# 2024 Modified by Vizonex
 
 import asyncio
 import logging
 import os
 import queue
 import traceback
-import asyncio 
+import asyncio
 from typing import (
     Any,
     AsyncIterable,
@@ -43,6 +43,7 @@ _T = TypeVar("_T")
 
 log = logging.getLogger(__name__)
 
+
 class ThreadPoolWorker(Thread):
     """Individual worker thread for the async pool."""
 
@@ -72,9 +73,42 @@ class ThreadPoolWorker(Thread):
 
     async def run(self) -> None:
         """Pick up work, execute work, return results, rinse, repeat."""
-        pending: Dict[asyncio.Future, TaskID] = {}
+        pending: Dict[asyncio.Future, TaskID] = {} 
         completed = 0
         running = True
+
+
+        # TODO: (Vizonex) See if moving with the eventloop 
+        # rather than against it in some of the code below 
+        # Improves performance.
+        # Know that if we end up taking that route "fully" 
+        # this part of the code will be changed tremendously.
+
+        # NOTE: _on_completed() is experimental, 
+        # This gets rid of the for loop on finishing tasks, 
+        # with the added bonous of letting the 
+        # event-loop to run more asynchronously....
+
+        def _on_completed(f:asyncio.Future):
+            # Making all of these nonlocal fixes issues...
+            nonlocal completed
+            nonlocal pending 
+
+            tid = pending.pop(f)
+
+            result = None
+            tb = None
+            try:
+                result = f.result()
+            except BaseException as e:
+                if self.exception_handler is not None:
+                    self.exception_handler(e)
+                
+                tb = traceback.format_exc()
+
+            self.rx.put_nowait((tid, result, tb))
+            completed += 1
+
         while running or pending:
             # TTL, Tasks To Live, determines how many tasks to execute before dying
             if self.ttl and completed >= self.ttl:
@@ -92,32 +126,40 @@ class ThreadPoolWorker(Thread):
                     break
 
                 tid, func, args, kwargs = task
-                future = asyncio.ensure_future(func(*args, **kwargs))
+                future : asyncio.Future = asyncio.ensure_future(func(*args, **kwargs))
+                future.add_done_callback(_on_completed)
                 pending[future] = tid
 
-            if not pending:
-                await asyncio.sleep(0.005)
-                continue
+            # Visit eventloop and visit finishing tasks as they complete...
+            await asyncio.sleep(0.005)
+            
+            # NOTE: All has been Moved to _on_completed(), Kept Here if we decide to revert... - Vizonex
 
+            # if not pending:
+            # await asyncio.sleep(0.005)
+                # continue
+            
             # return results and/or exceptions when completed
-            done, _ = await asyncio.wait(
-                pending.keys(), timeout=0.05, return_when=asyncio.FIRST_COMPLETED
-            )
-            for future in done:
-                tid = pending.pop(future)
 
-                result = None
-                tb = None
-                try:
-                    result = future.result()
-                except BaseException as e:
-                    if self.exception_handler is not None:
-                        self.exception_handler(e)
+            # done, _ = await asyncio.wait(
+            #     pending.keys(), timeout=0.05, return_when=asyncio.FIRST_COMPLETED
+            # )
 
-                    tb = traceback.format_exc()
+            # for future in done:
+            #     pending.pop(future)
 
-                self.rx.put_nowait((tid, result, tb))
-                completed += 1
+            #     result = None
+            #     tb = None
+            #     try:
+            #         result = future.result()
+            #     except BaseException as e:
+            #         if self.exception_handler is not None:
+            #             self.exception_handler(e)
+
+            #         tb = traceback.format_exc()
+
+            #     self.rx.put_nowait((tid, result, tb))
+            #     completed += 1
 
 
 class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
@@ -163,10 +205,10 @@ class ThreadPool:
         maxtasksperchild: int = MAX_TASKS_PER_CHILD,
         childconcurrency: int = CHILD_CONCURRENCY,
         queuecount: Optional[int] = None,
-        scheduler: Scheduler = None,
+        scheduler: Optional[Scheduler] = None,
         loop_initializer: Optional[LoopInitializer] = None,
         exception_handler: Optional[Callable[[BaseException], None]] = None,
-    ) -> None:
+    ):
         self.context = get_context()
 
         self.scheduler = scheduler or RoundRobin()
@@ -248,9 +290,9 @@ class ThreadPool:
                         break
 
             # let someone else do some work for once
-            # NOTE: Without this the pool blocks when it shouldn't 
+            # NOTE: Without this the pool blocks when it shouldn't
             # This could be due to how the loop is visiting different tasks
-            await asyncio.sleep(0.005) 
+            await asyncio.sleep(0.005)
 
     def create_worker(self, qid: QueueID) -> Thread:
         """
@@ -393,3 +435,4 @@ class ThreadPool:
             raise RuntimeError("pool is still open")
 
         await self._loop
+
