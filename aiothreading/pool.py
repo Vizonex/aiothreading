@@ -7,7 +7,6 @@ import logging
 import os
 import queue
 import traceback
-import asyncio
 from typing import (
     Any,
     AsyncIterable,
@@ -21,7 +20,6 @@ from typing import (
     Tuple,
     TypeVar,
 )
-
 
 from .core import Thread, get_context
 from .scheduler import RoundRobin, Scheduler
@@ -73,26 +71,25 @@ class ThreadPoolWorker(Thread):
 
     async def run(self) -> None:
         """Pick up work, execute work, return results, rinse, repeat."""
-        pending: Dict[asyncio.Future, TaskID] = {} 
+        pending: Dict[asyncio.Future, TaskID] = {}
         completed = 0
         running = True
 
-
-        # TODO: (Vizonex) See if moving with the eventloop 
-        # rather than against it in some of the code below 
+        # TODO: (Vizonex) See if moving with the eventloop
+        # rather than against it in some of the code below
         # Improves performance.
-        # Know that if we end up taking that route "fully" 
+        # Know that if we end up taking that route "fully"
         # this part of the code will be changed tremendously.
 
-        # NOTE: _on_completed() is experimental, 
-        # This gets rid of the for loop on finishing tasks, 
-        # with the added bonous of letting the 
+        # NOTE: _on_completed() is experimental,
+        # This gets rid of the for loop on finishing tasks,
+        # with the added bonous of letting the
         # event-loop to run more asynchronously....
 
-        def _on_completed(f:asyncio.Future):
+        def _on_completed(f: asyncio.Future):
             # Making all of these nonlocal fixes issues...
             nonlocal completed
-            nonlocal pending 
+            nonlocal pending
 
             tid = pending.pop(f)
 
@@ -103,7 +100,7 @@ class ThreadPoolWorker(Thread):
             except BaseException as e:
                 if self.exception_handler is not None:
                     self.exception_handler(e)
-                
+
                 tb = traceback.format_exc()
 
             self.rx.put_nowait((tid, result, tb))
@@ -126,19 +123,19 @@ class ThreadPoolWorker(Thread):
                     break
 
                 tid, func, args, kwargs = task
-                future : asyncio.Future = asyncio.ensure_future(func(*args, **kwargs))
+                future: asyncio.Future = asyncio.ensure_future(func(*args, **kwargs))
                 future.add_done_callback(_on_completed)
                 pending[future] = tid
 
             # Visit eventloop and visit finishing tasks as they complete...
             await asyncio.sleep(0.005)
-            
-            # NOTE: All has been Moved to _on_completed(), Kept Here if we decide to revert... - Vizonex
+
+            # NOTE: All has been Moved to on_done(), Kept Here if we decide to revert... - Vizonex
 
             # if not pending:
             # await asyncio.sleep(0.005)
-                # continue
-            
+            # continue
+
             # return results and/or exceptions when completed
 
             # done, _ = await asyncio.wait(
@@ -183,6 +180,11 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
         """Return results one-by-one as they are ready"""
         return self.results_generator()
 
+    # TODO: (Vixonex) Get rid of returning
+    # in orderly fassions or make it optional
+    # Personally I don't like it and people
+    # are more into obtaining results out of order
+    # when something is done...
     async def results_generator(self) -> AsyncIterator[_T]:
         """Return results one-by-one as they are ready"""
         for task_id in self.task_ids:
@@ -435,4 +437,3 @@ class ThreadPool:
             raise RuntimeError("pool is still open")
 
         await self._loop
-
