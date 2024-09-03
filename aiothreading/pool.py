@@ -180,16 +180,46 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
         """Return results one-by-one as they are ready"""
         return self.results_generator()
 
-    # TODO: (Vixonex) Get rid of returning
-    # in orderly fassions or make it optional
-    # Personally I don't like it and people
-    # are more into obtaining results out of order
-    # when something is done...
     async def results_generator(self) -> AsyncIterator[_T]:
         """Return results one-by-one as they are ready"""
         for task_id in self.task_ids:
             yield (await self.pool.results([task_id]))[0]
 
+    async def first_completed(self) -> AsyncIterator[_T]:
+        """Return results one-by-one as tasks are being finished rather than by order,
+        This saves time over simply waiting for things in order or input and makes an 
+        asynchornous iterator for all the "first finishing" objects making everything 
+        smoother and more instant.
+        ::
+
+            async def coro(i):
+                # Use your imagination a little...
+                ...
+
+            async with ThreadPool() as pool:
+                async for finished in pool.map(coro, [1, 2, 3]).first_completed():
+                    ...
+        
+        """
+        # TODO (Vizonex): Make a "first_completed method" inside of the ThreadPool 
+        # Class Object itself rather than simply being apart of here...
+        task_ids = list(set(self.task_ids)) 
+        while task_ids:
+            # Pop the longest running task from the stack first
+            tid = task_ids.pop(0)
+
+            __result: Optional[Tuple[_T, Optional[TracebackStr]]] = self.pool._results.pop(tid, None)
+            if __result:
+                value, tb = __result
+                if tb:
+                    raise ProxyException(tb)
+                else:
+                    yield value
+            else:
+                # Place back on the stack and 
+                # visit other things on the eventloop
+                task_ids.append(tid)
+                await asyncio.sleep(0.005)
 
 # NOTE: Not very many things have changed from aiomultiprocess's
 # Pool Class Such as the removal of terminating since threads can't terminate
