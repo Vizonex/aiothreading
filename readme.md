@@ -124,15 +124,19 @@ async with ThreadPool() as pool:
 
 - High task consumption over a single loop on a lower-end device
 
-- Networking or loading takes longer than usual in cases such as webscraping over the Tor Network 
+- Networking or loading takes longer than usual in cases such as webscraping over the Tor Network
 
-- Your writing an application via excutable such as compiling with pyinstaller which is Notorious for not working with multiprocessing but you don't want something that will wind up acting too slow
+- Your writing an application via excutable such as compiling with pyinstaller which is Notorious
+for not working with multiprocessing but you don't want something that will wind up acting too slow
 
-- When you need to run something such as a discord bot and http server over the same process examples of when you would do this would be when running a health check on the discord bot.
+- When you need to run something such as a discord bot and http server over the same process
+examples of when you would do this would be when running a health check on the discord bot.
 
-- You don't want something fancy or grandiose but your still trying to find the best possible outcome.
+- When you don't need something fancy or grandiose.
 
 - Your working with a potato operating system, rasberrypi, libre-computer, etc...
+
+- When you need to combine aiomultiprocess library with this one. 
 
 - Low CPU overall
 
@@ -142,6 +146,6 @@ If none of these fit your criteria I highly encourage you to use the aiomultipro
 
 ## TODOS
 - [ ] Youtube Video about how to use
-- [x] Pypi pakage (Just Released this recently so that I come up with a workflow soon)
-
+- [x] Pypi pakage
+- [x] workflows 
 
