@@ -6,7 +6,6 @@
 import asyncio
 import os
 import sys
-
 from concurrent.futures import Future, InvalidStateError
 from functools import partial
 from types import TracebackType
@@ -25,12 +24,13 @@ from typing import (
     TypeVar,
 )
 
-from .core import Thread 
+from aiologic import Condition, CountdownEvent, SimpleQueue
+from deprecated_params import deprecated_params
+
+from .core import Thread
 from .scheduler import Scheduler
 from .types import LoopInitializer, ProxyException, R, T
 from .utils import deprecated_param
-
-from aiologic import SimpleQueue, CountdownEvent, Condition
 
 MAX_TASKS_PER_CHILD = 0  # number of tasks to execute before recycling a child process
 CHILD_CONCURRENCY = 0  # number of tasks to execute simultaneously per child process
@@ -60,11 +60,13 @@ async def _work(
         if future.cancelled():
             return
 
-        future.add_done_callback(partial(
-            _on_complete,
-            asyncio.get_running_loop(),
-            asyncio.current_task(),
-        ))
+        future.add_done_callback(
+            partial(
+                _on_complete,
+                asyncio.get_running_loop(),
+                asyncio.current_task(),
+            )
+        )
 
         result = await func(*args, **kwargs)
     except BaseException as exc:
@@ -74,9 +76,11 @@ async def _work(
         finally:
             # TODO: set original exception instead of ProxyException
             try:
-                future.set_exception(ProxyException().with_traceback(
-                    exc.__traceback__,
-                ))
+                future.set_exception(
+                    ProxyException().with_traceback(
+                        exc.__traceback__,
+                    )
+                )
             except InvalidStateError:  # future is cancelled
                 pass
     else:
@@ -94,20 +98,18 @@ async def _work(
 class ThreadPoolWorker(Thread[None]):
     """Individual worker thread for the async pool."""
 
-    @deprecated_param(
-        ("ttl"),
-        version="0.1.3",
-        reason="Tasks To Live (TTL) will be removed in 0.1.4",
-    )
     def __init__(
         self,
-        tx: SimpleQueue[Optional[tuple[
-            Callable[..., Coroutine[Any, Any, Any]],
-            Sequence[Any],
-            Dict[str, Any],
-            Future[Any],
-        ]]],
-        ttl: int = MAX_TASKS_PER_CHILD,
+        tx: SimpleQueue[
+            Optional[
+                tuple[
+                    Callable[..., Coroutine[Any, Any, Any]],
+                    Sequence[Any],
+                    Dict[str, Any],
+                    Future[Any],
+                ]
+            ]
+        ],
         concurrency: int = CHILD_CONCURRENCY,
         *,
         exception_handler: Optional[Callable[[BaseException], None]] = None,
@@ -132,12 +134,14 @@ class ThreadPoolWorker(Thread[None]):
                     break
 
                 self.all_completed.up()
-                asyncio.create_task(_work(
-                    *task_info,
-                    self.any_completed,
-                    self.all_completed,
-                    self.exception_handler,
-                ))
+                asyncio.create_task(
+                    _work(
+                        *task_info,
+                        self.any_completed,
+                        self.all_completed,
+                        self.exception_handler,
+                    )
+                )
             else:
                 await self.any_completed
 
@@ -189,23 +193,29 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
 # Pool was also renamed to ThreadPool so aiomultiprocess doesn't overlap itself...
 
 
+@deprecated_params(
+    ["scheduler", "maxtasksperchild", "queuecount"],
+    {
+        "scheduler": "Removed for Performance Optimizations, Sheduled for deletion in 0.1.5",
+        "maxtasksperchild": "Removed for Performance Optimizations, Sheduled for deletion in 0.1.5",
+        "queuecount": "Unused currently, Scheduled for deletetion in 0.1.6",
+    },
+)
 class ThreadPool:
     """Execute coroutines on a pool of threads."""
 
-    @deprecated_param(
-        deprecated_args=["scheduler", "maxtasksperchild"],
-        version="0.1.3",
-        reason="Removed for Performance Optimizations, Sheduled for deletion in 0.1.5",
-    )
     def __init__(
         self,
         threads: Optional[int] = None,
         initializer: Optional[Callable[..., Any]] = None,
         initargs: Sequence[Any] = (),
-        maxtasksperchild: int = MAX_TASKS_PER_CHILD,  # Sheduled for removal in soon as a performance optimization
+        # Sheduled for removal in soon as a performance optimization
+        maxtasksperchild: int = MAX_TASKS_PER_CHILD,
         childconcurrency: int = CHILD_CONCURRENCY,
         queuecount: Optional[int] = None,  # queuecount is not used anymore
-        scheduler: Optional[Scheduler] = None,  # Scheduler is now Deprecated and no longer in use anymore
+        scheduler: Optional[
+            Scheduler
+        ] = None,  # Scheduler is now Deprecated and no longer in use anymore
         loop_initializer: Optional[LoopInitializer] = None,
         exception_handler: Optional[Callable[[BaseException], None]] = None,
     ):
@@ -281,12 +291,14 @@ class ThreadPool:
         future: Future[R] = Future()
 
         self._adjust_thread_count()
-        min(self.threads, key=ThreadPoolWorker.key).tx.put((
-            func,
-            args,
-            kwargs,
-            future,
-        ))
+        min(self.threads, key=ThreadPoolWorker.key).tx.put(
+            (
+                func,
+                args,
+                kwargs,
+                future,
+            )
+        )
 
         return asyncio.wrap_future(future)
 
