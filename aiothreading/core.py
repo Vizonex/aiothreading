@@ -5,7 +5,6 @@
 
 import asyncio
 import threading
-
 from typing import (
     Any,
     Callable,
@@ -23,14 +22,7 @@ from typing import (
 from aiologic import Event
 from aiologic.lowlevel import Flag
 
-from .types import (
-    LoopInitializer,
-    Namespace,
-    PrematureStopException,
-    R,
-    StopEnum,
-    Unit,
-)
+from .types import LoopInitializer, Namespace, PrematureStopException, R, StopEnum, Unit
 
 
 async def not_implemented(*args: Any, **kwargs: Any) -> NoReturn:
@@ -55,11 +47,13 @@ def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
             continue
 
         if task.exception() is not None:
-            loop.call_exception_handler({
-                "message": "unhandled exception during run_async() shutdown",
-                "exception": task.exception(),
-                "task": task,
-            })
+            loop.call_exception_handler(
+                {
+                    "message": "unhandled exception during run_async() shutdown",
+                    "exception": task.exception(),
+                    "task": task,
+                }
+            )
 
 
 class Thread(Generic[R]):
@@ -117,7 +111,9 @@ class Thread(Generic[R]):
         return (yield from self.join().__await__())
 
     @staticmethod
-    def run_async(unit: Unit[R], *, _set_complete_event: bool = True) -> Union[R, Literal[StopEnum.PREMATURE_STOP]]:
+    def run_async(
+        unit: Unit[R], *, _set_complete_event: bool = True
+    ) -> Union[R, Literal[StopEnum.PREMATURE_STOP]]:
         """Initialize the child thread and event loop, then execute the coroutine."""
         try:
             if unit.loop_initializer is None:
@@ -131,10 +127,12 @@ class Thread(Generic[R]):
                 if unit.initializer:
                     unit.initializer(*unit.initargs)
 
-                task: asyncio.Task[R] = loop.create_task(unit.target(
-                    *unit.args,
-                    **unit.kwargs,
-                ))
+                task: asyncio.Task[R] = loop.create_task(
+                    unit.target(
+                        *unit.args,
+                        **unit.kwargs,
+                    )
+                )
 
                 if not unit.stop_flag.set((loop, task)):
                     task.cancel()
@@ -237,7 +235,9 @@ class Worker(Thread[R]):
         return (yield from self.join().__await__())
 
     @staticmethod
-    def run_async(unit: Unit[R], *, _set_complete_event: bool = True) -> Union[R, Literal[StopEnum.PREMATURE_STOP]]:
+    def run_async(
+        unit: Unit[R], *, _set_complete_event: bool = True
+    ) -> Union[R, Literal[StopEnum.PREMATURE_STOP]]:
         """Initialize the child thread and event loop, then execute the coroutine."""
         try:
             unit.namespace.result = result = Thread.run_async(
