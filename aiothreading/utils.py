@@ -1,20 +1,20 @@
 """some other cleaver utilities for use with Threads and asyncio
-These utilities are currently experimental but are meant to provide 
-shared acessabilities to asyncio and threading both synchronously 
-and asynchronously. 
+These utilities are currently experimental but are meant to provide
+shared acessabilities to asyncio and threading both synchronously
+and asynchronously.
 
-These Include: 
+These Include:
 - Lock
 - RLock
 - Condition
-- Semaphore 
+- Semaphore
 - BoundedSemaphore
 - Event
 
 
 WARNING
 -------
-All of the following listed above are Currently Experimental and all 
+All of the following listed above are Currently Experimental and all
 are held subject to change in the near futrue.
 
 NOTE: Some Parts of this module will soon be deprecated in Favor of aiologic
@@ -22,47 +22,8 @@ SEE: https://github.com/x42005e1f/aiologic
 """
 
 import asyncio
-import sys
 import threading
-import warnings
-
-from typing import Callable, Generic, Optional, Sequence, TypeVar, Union
-
-if sys.version_info < (3, 10):
-    from typing_extensions import ParamSpec, Concatenate
-else:
-    from typing import ParamSpec, Concatenate
-
-if sys.version_info < (3, 11):
-    from typing_extensions import Self
-else:
-    from typing import Self
-
-T = TypeVar("T")
-P = ParamSpec("P")
-
-CallableOrMethod = Union[Callable[Concatenate[Self, P], T], Callable[P, T]]
-
-
-# slightly modified version of some code from stack overflow that I slightly altered for typehinting.
-# SEE: https://stackoverflow.com/questions/54949421/deprecate-a-function-parameter/54949947#54949947
-
-class deprecated_param(Generic[P, T]):
-    """Labels a parameter or list of parameters that will be set for deprecation"""
-    def __init__(self, deprecated_args:Sequence[str], version:str, reason:str):
-        self.deprecated_args = set(deprecated_args)
-        self.version = version
-        self.reason = reason
-
-    def __call__(self, func:CallableOrMethod[P, T]) -> CallableOrMethod[P, T]:
-        def wrapper(*args:P.args, **kwargs:P.kwargs):
-            found = self.deprecated_args.intersection(kwargs)
-            if found:
-                warnings.warn("Parameter(s) %s deprecated since version %s; %s" % (
-                    ', '.join(map("'{}'".format, found)), self.version, self.reason), category=UserWarning)
-            return func(*args, **kwargs)
-        return wrapper
-
+from typing import Callable, Optional, Union
 
 class Lock:
     """A Special lock that can be shared over asyncio and threads alike"""
@@ -86,7 +47,7 @@ class Lock:
                 return False
         else:
             # Make sure we don't block so that the loop attempting to aquire the lock can visit other tasks...
-            while self.sync_aquire(timeout=0.005) == False:
+            while not self.sync_aquire(timeout=0.005):
                 await asyncio.sleep(0.005)
             # Lock aquired
             return True
@@ -96,12 +57,6 @@ class Lock:
 
     async def __aexit__(self):
         return self.release()
-
-
-
-
-    
-
 
 
 class RLock:
@@ -114,9 +69,8 @@ class RLock:
 
         # Install Internal function calls
         self._is_owned = self.lock._is_owned
-        self._release_save = self.lock._release_save 
+        self._release_save = self.lock._release_save
         self._acquire_restore = self.lock._acquire_restore
-
 
     async def acquire(self, timeout: Optional[float] = None) -> bool:
         """Returns True if lock was aquired and false if that ended up failing"""
@@ -165,18 +119,16 @@ class RLock:
 
     def release(self) -> None:
         return self.lock.release()
-    
 
-
-        
- 
 
 class Condition:
-    """Class that implements a condition-variable over 
+    """Class that implements a condition-variable over
     asyncio and threading
     """
 
-    def __init__(self, lock:Union[threading.Lock, threading.RLock, Lock, RLock, None] = None) -> None:
+    def __init__(
+        self, lock: Union[threading.Lock, threading.RLock, Lock, RLock, None] = None
+    ) -> None:
         if isinstance(lock, (Lock, RLock)):
             # Extract the real lock
             thread_lock = lock._lock
@@ -184,7 +136,7 @@ class Condition:
             thread_lock = lock
 
         self._condition = threading.Condition(lock=thread_lock)
-        
+
         # Install the condition variable's functions for faster speeds and ease of access...
         self.release = self._condition.release
         self._release_save = self._condition._release_save
@@ -195,9 +147,8 @@ class Condition:
         self.sync_wait_for = self._condition.wait_for
         self.notify_all = self._condition.notify_all
         self.notifyAll = self._condition.notifyAll
-        
-    
-    def sync_aquire(self, blocking:bool = True, timeout:Optional[float] = None):    
+
+    def sync_aquire(self, blocking: bool = True, timeout: Optional[float] = None):
         """aquires a condition synchronously"""
         # Custom function for providing a secondary way of syncing conditions...
         return self._condition.acquire(blocking, timeout)
@@ -225,7 +176,7 @@ class Condition:
 
     def __exit__(self, t, v, tb):
         return self._condition.release()
-    
+
     async def wait(self, timeout=None):
         """Waits asynchronously until notified or until a timeout occurs"""
         if timeout is not None:
@@ -238,14 +189,14 @@ class Condition:
             # See: threading.Condition.wait
             if not self._is_owned():
                 raise RuntimeError("cannot wait on un-acquired lock")
-            
+
             # NOTE: Our asynchronous lock we made is compatable with threading's condition.
             waiter = Lock()
             waiter.sync_aquire()
             self._condition._waiters.append(waiter)
             saved_state = self._release_save()
             gotit = False
-            try:    # restore state no matter what (e.g., KeyboardInterrupt)
+            try:  # restore state no matter what (e.g., KeyboardInterrupt)
                 if timeout is None:
                     # Let this asyncio loop visit other things...
                     await waiter.acquire()
@@ -264,8 +215,9 @@ class Condition:
                     except ValueError:
                         pass
 
-
-    async def wait_for(self, predicate:Callable[..., bool], timeout:Optional[float] = None):
+    async def wait_for(
+        self, predicate: Callable[..., bool], timeout: Optional[float] = None
+    ):
         """Wait until a condition evaluates to True. On whatever current eventloop is being used..."""
         loop = asyncio.get_event_loop()
         _time = loop.time
@@ -283,22 +235,21 @@ class Condition:
             await self.wait(waittime)
             result = predicate()
         return result
-    
 
 
 class Semaphore:
     """This class implements Semaphore Objects for asyncio/threads"""
 
-    def __init__(self, value:int = 1) -> None:
+    def __init__(self, value: int = 1) -> None:
         if value < 0:
             raise ValueError("semaphore initial value must be >= 0")
-        
-        # Use our Condition variable for delivering better 
+
+        # Use our Condition variable for delivering better
         # asynchronous visitation...
         self._cond = Condition(threading.Lock())
         self._value = value
-    
-    async def acquire(self, blocking:bool = True, timeout=None):
+
+    async def acquire(self, blocking: bool = True, timeout=None):
         """Acquire a semaphore, decrementing the internal counter by one.
 
         When invoked without arguments: if the internal counter is larger than
@@ -323,9 +274,9 @@ class Semaphore:
 
         """
 
-        # blocking functionality should be retained so 
+        # blocking functionality should be retained so
         # that Threading.Semaphore's rules are being obeyed
-        
+
         if not blocking and timeout is not None:
             raise ValueError("can't specify timeout for non-blocking acquire")
         # Get the thread's owning eventloop
@@ -360,26 +311,27 @@ class Semaphore:
 
         """
         if n < 1:
-            raise ValueError('n must be one or more')
+            raise ValueError("n must be one or more")
         with self._cond:
             self._value += n
             for _ in range(n):
                 self._cond.notify()
 
     async def __aexit__(self, t, v, tb):
-        self.release()    
+        self.release()
 
 
 class BoundedSemaphore(Semaphore):
     """Mirror of threading.BoundedSemaphore but with some Asynchronous capabilities added onto it"""
+
     def __init__(self, value: int = 1) -> None:
         Semaphore.__init__(self, value)
         self._initial_value = value
-    
+
     def release(self, n=1):
         if n < 1:
-            raise ValueError('n must be one or more')
-        
+            raise ValueError("n must be one or more")
+
         with self._cond:
             if self._value + n > self._initial_value:
                 raise ValueError("Semaphore released too many times")
@@ -387,21 +339,21 @@ class BoundedSemaphore(Semaphore):
             for _ in range(n):
                 self._cond.notify()
 
-    async def async_release(self, n = 1):
+    async def async_release(self, n=1):
         """Provides the ability of releasing with the Bounded Semaphore asynchronously"""
         if n < 1:
-            raise ValueError('n must be one or more')
-        
+            raise ValueError("n must be one or more")
+
         async with self._cond:
             if self._value + n > self._initial_value:
                 raise ValueError("Semaphore released too many times")
             self._value += n
             for _ in range(n):
                 self._cond.notify()
-    
+
     async def __aexit__(self, t, v, tb):
         return await self.async_release()
-    
+
 
 class Event:
     """Class implementing event objects but for multiple use-cases with asyncio & Threading.
@@ -426,7 +378,7 @@ class Event:
         return self._flag
 
     isSet = is_set
-    
+
     def set(self):
         """Sets the internal flag to True"""
         with self._cond:
@@ -437,22 +389,22 @@ class Event:
         """Resets the intenal flag to false"""
         with self._cond:
             self._flag = False
-    
-    async def wait(self, timeout:Optional[float] = None):
+
+    async def wait(self, timeout: Optional[float] = None):
         """Waits for the Event's internal flag to be set to True asynchronously
-        allowing for whatever holds the current eventloop to visit other 
+        allowing for whatever holds the current eventloop to visit other
         important tasks..."""
         async with self._cond:
             signaled = self._flag
             if not signaled:
-               signaled = await self._cond.wait(timeout)
+                signaled = await self._cond.wait(timeout)
             return signaled
-    
+
     def sync_wait(self, timeout=None):
         """Blocks synchornously until the internal flag is true.
 
         From threading.Event Docs:
- 
+
         If the internal flag is true on entry, return immediately. Otherwise,
         block until another thread calls set() to set the flag to true, or until
         the optional timeout occurs.
@@ -469,6 +421,4 @@ class Event:
             signaled = self._flag
             if not signaled:
                 signaled = self._cond.sync_aquire(timeout)
-            return signaled 
-    
-
+            return signaled
