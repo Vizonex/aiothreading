@@ -1,0 +1,27 @@
+[project]
+name = "aiothreading"
+version = "0.1.4"
+description = "AsyncIO version of the standard threading module"
+readme = "README.md"
+authors = [
+    { name = "Vizonex" },
+    { name = "x42005e1f" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "aiologic>=0.13.0",
+    "deprecated-params>=0.1.0"
+]
+keywords=["aiothreading", "threading", "asyncio"]
+
+classifiers=[
+    "Framework :: AsyncIO",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+
