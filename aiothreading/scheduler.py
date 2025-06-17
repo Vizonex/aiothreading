@@ -8,7 +8,7 @@ from typing import Any, Awaitable, Callable, Dict, Iterator, List, Sequence
 
 from .types import Queue, QueueID, R, TaskID
 
-
+# TODO: Deprecate in a later version...
 class Scheduler(ABC):
     @abstractmethod
     def register_queue(self, tx: Queue) -> QueueID:

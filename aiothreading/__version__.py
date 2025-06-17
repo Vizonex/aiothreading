@@ -2,4 +2,4 @@
 # Licensed under the MIT license
 # 2024-2025 Modified by Vizonex & x42005e1f
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
