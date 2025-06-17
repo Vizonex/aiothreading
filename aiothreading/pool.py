@@ -30,7 +30,6 @@ from deprecated_params import deprecated_params
 from .core import Thread
 from .scheduler import Scheduler
 from .types import LoopInitializer, ProxyException, R, T
-from .utils import deprecated_param
 
 MAX_TASKS_PER_CHILD = 0  # number of tasks to execute before recycling a child process
 CHILD_CONCURRENCY = 0  # number of tasks to execute simultaneously per child process
