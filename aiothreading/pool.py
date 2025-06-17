@@ -269,7 +269,7 @@ class ThreadPool:
 
             thread = ThreadPoolWorker(
                 SimpleQueue(),
-                self.maxtasksperchild,
+                # self.maxtasksperchild,
                 self.childconcurrency,
                 initializer=self.initializer,
                 initargs=self.initargs,
