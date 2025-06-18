@@ -16,7 +16,7 @@ except ModuleNotFoundError:
 
 
 async def waiting(value:int):
-    await asyncio.sleep(0.05)
+    await asyncio.sleep(0.005)
     return value
 
 async def mapper(value:int):
@@ -59,3 +59,4 @@ if not SKIP_ASYNC_TIMEOUT:
         # did all of them complete? 
         # they don't have to be in order
         assert data == set(results)
+
