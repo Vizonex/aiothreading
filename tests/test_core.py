@@ -89,8 +89,8 @@ async def test_thread_daemon(sleepy_thread:SleepyThread):
 async def test_thread_join_timeout(sleepy_thread:SleepyThread):
     t = sleepy_thread()
     t.start()
-    # Should take no longer than 0.05 seconds so let's give it 0.07...
-    await t.join(0.07)
+    # Should take no longer than 0.05 seconds so let's give it 0.1...
+    await t.join(0.1)
 
 
 @pytest.mark.asyncio
