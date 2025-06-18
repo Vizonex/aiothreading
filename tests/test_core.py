@@ -2,7 +2,7 @@
 
 # import asyncio
 import pytest
-from typing import Callable, TypeAlias
+from typing import Callable
 from aiothreading import Thread, Worker
 from aiothreading.core import PrematureStopException
 import threading
@@ -14,11 +14,11 @@ async def sleepy():
     await asyncio.sleep(0.1)
     return threading.get_native_id()
 
-SleepyThread: TypeAlias = Callable[..., Thread[int]]
-SleepyWorker: TypeAlias = Callable[..., Worker[int]]
+SleepyThread = Callable[..., Thread[int]]
+SleepyWorker = Callable[..., Worker[int]]
 
-EternityThread: TypeAlias = Callable[..., Thread[None]]
-EternityWorker: TypeAlias = Callable[..., Worker[None]]
+EternityThread = Callable[..., Thread[None]]
+EternityWorker = Callable[..., Worker[None]]
 
 
 # # import sys
