@@ -4,6 +4,7 @@
 import pytest
 from typing import Callable, TypeAlias
 from aiothreading import Thread, Worker
+from aiothreading.core import PrematureStopException
 import threading
 import sys
 import time
@@ -19,6 +20,25 @@ SleepyWorker: TypeAlias = Callable[..., Worker[int]]
 EternityThread: TypeAlias = Callable[..., Thread[None]]
 EternityWorker: TypeAlias = Callable[..., Worker[None]]
 
+
+# # import sys
+# # import time
+# from unittest import TestCase, skip
+# from unittest.mock import patch
+
+# import aiothreading as ath
+# from tests.tests_help import (
+#     async_test,
+#     do_nothing,
+#     get_dummy_constant,
+#     initializer,
+#     raise_fn,
+#     sleepy,
+#     two,
+# )
+
+# def shut_up(exc):
+#     return 
 
 @pytest.mark.asyncio
 async def test_thread(sleepy_thread:SleepyThread):
@@ -112,15 +132,12 @@ async def test_worker(sleepy_woker:SleepyWorker):
 
 @pytest.mark.asyncio
 async def test_worker_terminate(enternity_worker: EternityWorker):
-    p = enternity_worker()
-    p.start()
-
-    assert p.name == "sleepy_worker"
-    native_id = p.native_id
-    assert p.is_alive()
-
-    result = await p.join()
-    assert result == native_id
-    assert not p.is_alive()
-
-
+    et = enternity_worker()
+    et.start()
+    loop = asyncio.get_event_loop()
+    start = loop.time()
+    et.terminate()
+    end = loop.time()
+    with pytest.raises(PrematureStopException, match="Thread was stopped prematurely..."):
+        r = await et
+    assert (end - start) < 300, "termination failed"
