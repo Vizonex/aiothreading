@@ -122,6 +122,10 @@ async with ThreadPool() as pool:
 
 ## When to Use Aiothreading Over AioMultiprocessing
 
+- If aiomutliprocess seems like too much try this library.
+  
+- when you need something that is more recently maintained.
+
 - High task consumption over a single loop on a lower-end device
 
 - Networking or loading takes longer than usual in cases such as webscraping over the Tor Network
