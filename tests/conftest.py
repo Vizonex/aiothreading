@@ -3,7 +3,7 @@ import sys
 import asyncio
 import pytest_asyncio
 from typing import Callable
-from aiothreading import Thread, Worker
+from aiothreading import Thread, Worker, ThreadPool
 from functools import partial
 import threading
 
@@ -46,7 +46,8 @@ def thread(*args, **kwargs):
 def worker(*args, **kwargs):
     return partial(Worker, *args, **kwargs)
 
-
+def threadpool(*args, **kwargs):
+    return partial(ThreadPool, *args, **kwargs)
 
 @pytest.fixture(
     scope="session",
@@ -92,14 +93,29 @@ def enternity_thread(request:pytest.FixtureRequest) -> Callable[[], Thread[int]]
 @pytest.fixture(
     scope="session",
     params=(
-        Worker(target=_eternity, name="enternity_thread"),
+        worker(target=_eternity, name="enternity_thread"),
         pytest.param(
-            Worker(target=_eternity, name="enternity_thread", loop_initializer=new_uv_event_loop),
+            worker(target=_eternity, name="enternity_thread", loop_initializer=new_uv_event_loop),
             marks=UV_MARK
         )
     )
 )
 def enternity_worker(request:pytest.FixtureRequest) -> Callable[..., Worker[None]]:
     return request.param
+
+
+@pytest.fixture(
+    scope="session",
+    params=( 
+        threadpool(),
+        pytest.param(
+            threadpool(loop_initializer=new_uv_event_loop),
+            marks=UV_MARK
+        )
+    )
+)
+def thread_pool_type(request:pytest.FixtureRequest) -> Callable[..., ThreadPool]:
+    return request.param
+
 
 
