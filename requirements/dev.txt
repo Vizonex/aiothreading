@@ -1,0 +1,5 @@
+pytest
+pytest-asyncio
+async-timeout
+winloop; platform == "Windows"
+uvloop; platform != "Windows"
