@@ -1,5 +1,5 @@
 pytest
 pytest-asyncio
 async-timeout
-winloop; platform == "Windows"
-uvloop; platform != "Windows"
+winloop; platform_system == "Windows"
+uvloop; platform_system != "Windows"
