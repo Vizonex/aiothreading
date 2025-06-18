@@ -8,12 +8,10 @@ on:
   push:
     branches:
       - 'master'
-      - '[0-9].[0-9]+'  # matches to backport branches, e.g. 3.6
-    tags: [ 'v*' ]
+
   pull_request:
     branches:
       - 'master'
-      - '[0-9].[0-9]+'
     
 
 
@@ -36,16 +34,15 @@ jobs:
           - os: ubuntu
             no-extensions: 'Y'
           
-        # XXX: Not ready yet...
-        # include:
+        include:
           # - pyver: pypy-3.9
           #   no-extensions: 'Y'
           #   os: ubuntu
           #   experimental: false
-          # - os: ubuntu
-            # pyver: "3.14"
-            # experimental: true
-            # no-extensions: 'Y'
+          - os: ubuntu
+            pyver: "3.14"
+            experimental: true
+            no-extensions: 'Y'
       fail-fast: false
     
     runs-on: ${{ matrix.os }}-latest
