@@ -19,6 +19,8 @@ from typing import (
     Union,
 )
 
+from types import GenericAlias
+
 from aiologic import Event
 from aiologic.lowlevel import Flag
 
@@ -164,7 +166,7 @@ class Thread(Generic[R]):
     async def join(self, timeout: Optional[int] = None) -> Any:
         """Wait for the process to finish execution without blocking the main thread."""
         if not self.is_started():
-            raise ValueError("must start thread before joining it")
+            raise RuntimeError("must start thread before joining it")
 
         if timeout is not None:
             await asyncio.wait_for(self.unit.complete_event, timeout)
@@ -220,6 +222,8 @@ class Thread(Generic[R]):
                     loop.call_soon_threadsafe(task.cancel)
                 except RuntimeError:  # event loop is closed
                     pass
+
+    __class_getitem__ = classmethod(GenericAlias) # type: ignore
 
 
 class Worker(Thread[R]):
