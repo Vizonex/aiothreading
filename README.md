@@ -3,7 +3,7 @@
 A Fork of aiomultiprocess built around threading for enhancing performance whenever processes can't be used
 
 
-[![PyPI version](https://badge.fury.io/py/aiomultithreading.svg)](https://badge.fury.io/py/aiothreading)
+[![PyPI version](https://badge.fury.io/py/aiothreading.svg)](https://badge.fury.io/py/aiothreading)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/aiothreading)](https://badge.fury.io/py/aiothreading)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
