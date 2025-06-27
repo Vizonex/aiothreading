@@ -1,6 +1,6 @@
 [project]
 name = "aiothreading"
-version = "0.1.4"
+version = "0.1.5"
 description = "AsyncIO version of the standard threading module"
 readme = "README.md"
 authors = [
