@@ -8,7 +8,6 @@ import aiothreading
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import aiothreading
 project = 'aiothreading'
 copyright = '2025, Vizonex'
 author = 'Vizonex'
