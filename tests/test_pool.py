@@ -56,7 +56,7 @@ if not SKIP_ASYNC_TIMEOUT:
         # if it can't then it has failed me...
         async with async_timeout.timeout(3):
             async with thread_pool_type(2) as pool:
-                results = await pool.map(waiting, data)
+                results = await pool.map(waiting, data)  # type: ignore[arg-type]
 
         # did all of them complete?
         # they don't have to be in order

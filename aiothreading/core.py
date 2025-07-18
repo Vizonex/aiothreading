@@ -163,7 +163,7 @@ class Thread(Generic[R]):
         """Start the child thread."""
         return self.aio_thread.start()
 
-    async def join(self, timeout: Optional[int] = None) -> Any:
+    async def join(self, timeout: Optional[Union[int, float]] = None) -> Any:
         """Wait for the process to finish execution without blocking the main thread."""
         if not self.is_started():
             raise RuntimeError("must start thread before joining it")
@@ -264,7 +264,7 @@ class Worker(Thread[R]):
 
         return result
 
-    async def join(self, timeout: Optional[int] = None) -> R:
+    async def join(self, timeout: Optional[Union[int, float]] = None) -> R:
         """Wait for the worker to finish, and return the final result."""
         await super().join(timeout)
         return self.result

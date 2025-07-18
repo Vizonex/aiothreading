@@ -134,7 +134,7 @@ class ThreadPoolWorker(Thread[None]):
 
                 self.all_completed.up()
                 asyncio.create_task(
-                    _work(
+                    _work(  # type: ignore[call-arg]
                         *task_info,
                         self.any_completed,
                         self.all_completed,
@@ -195,9 +195,9 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
 @deprecated_params(
     ["scheduler", "maxtasksperchild", "queuecount"],
     {
-        "scheduler": "Removed for Performance Optimizations, Sheduled for deletion in 0.1.5",
-        "maxtasksperchild": "Removed for Performance Optimizations, Sheduled for deletion in 0.1.5",
-        "queuecount": "Unused currently, Scheduled for deletetion in 0.1.6",
+        "scheduler": "Removed for Performance Optimizations, Scheduled for deletion in 0.1.5",
+        "maxtasksperchild": "Removed for Performance Optimizations, Scheduled for deletion in 0.1.5",
+        "queuecount": "Unused currently, Scheduled for deletion in 0.1.6",
     },
 )
 class ThreadPool:
@@ -208,7 +208,7 @@ class ThreadPool:
         threads: Optional[int] = None,
         initializer: Optional[Callable[..., Any]] = None,
         initargs: Sequence[Any] = (),
-        # Sheduled for removal in soon as a performance optimization
+        # Scheduled for removal in soon as a performance optimization
         childconcurrency: int = CHILD_CONCURRENCY,
         loop_initializer: Optional[LoopInitializer] = None,
         exception_handler: Optional[Callable[[BaseException], None]] = None,
@@ -237,7 +237,7 @@ class ThreadPool:
 
         # NOTE: Renamed processes to threads since were dealing with threads - Vizonex
 
-        # Were going to use a list instead of a dicitonary for initalization
+        # Were going to use a list instead of a dictionary for initialization
         # This is more or less an optimization
         self.threads: List[ThreadPoolWorker] = []
         self.thread_count = threads
