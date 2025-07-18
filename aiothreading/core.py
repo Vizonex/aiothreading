@@ -223,7 +223,7 @@ class Thread(Generic[R]):
                 except RuntimeError:  # event loop is closed
                     pass
 
-    __class_getitem__ = classmethod(GenericAlias) # type: ignore
+    __class_getitem__ = classmethod(GenericAlias)  # type: ignore
 
 
 class Worker(Thread[R]):

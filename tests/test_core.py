@@ -6,13 +6,13 @@ from typing import Callable
 from aiothreading import Thread, Worker
 from aiothreading.core import PrematureStopException
 import threading
-import sys
-import time
 import asyncio
+
 
 async def sleepy():
     await asyncio.sleep(0.1)
     return threading.get_native_id()
+
 
 SleepyThread = Callable[..., Thread[int]]
 SleepyWorker = Callable[..., Worker[int]]
@@ -38,10 +38,11 @@ EternityWorker = Callable[..., Worker[None]]
 # )
 
 # def shut_up(exc):
-#     return 
+#     return
+
 
 @pytest.mark.asyncio
-async def test_thread(sleepy_thread:SleepyThread):
+async def test_thread(sleepy_thread: SleepyThread):
     p = sleepy_thread()
     p.start()
 
@@ -52,19 +53,21 @@ async def test_thread(sleepy_thread:SleepyThread):
     await p.join()
     assert not p.is_alive()
 
-@pytest.mark.asyncio
-async def test_thread_await_1(sleepy_thread:SleepyThread):
-    await sleepy_thread()
 
 @pytest.mark.asyncio
-async def test_thread_await_2(sleepy_thread:SleepyThread):
+async def test_thread_await_1(sleepy_thread: SleepyThread):
+    await sleepy_thread()
+
+
+@pytest.mark.asyncio
+async def test_thread_await_2(sleepy_thread: SleepyThread):
     t = sleepy_thread()
     t.start()
     await t
 
 
 @pytest.mark.asyncio
-async def test_thread_join(sleepy_thread:SleepyThread):
+async def test_thread_join(sleepy_thread: SleepyThread):
     t = sleepy_thread()
     t.start()
     await t.join()
@@ -72,21 +75,20 @@ async def test_thread_join(sleepy_thread:SleepyThread):
     t = sleepy_thread()
     with pytest.raises(RuntimeError, match="must start thread before joining it"):
         await t.join()
-    
 
-    
+
 @pytest.mark.asyncio
-async def test_thread_daemon(sleepy_thread:SleepyThread):
+async def test_thread_daemon(sleepy_thread: SleepyThread):
     p = sleepy_thread()
-    assert p.daemon == False
+    assert not p.daemon
     p.daemon = True
-    assert p.daemon == True
+    assert p.daemon
     p.start()
     await p.join()
 
 
 @pytest.mark.asyncio
-async def test_thread_join_timeout(sleepy_thread:SleepyThread):
+async def test_thread_join_timeout(sleepy_thread: SleepyThread):
     t = sleepy_thread()
     t.start()
     # Should take no longer than 0.05 seconds so let's give it 0.1...
@@ -103,7 +105,6 @@ async def test_thread_join_timeout_2(enternity_thread: EternityThread):
     t.terminate()
 
 
-
 @pytest.mark.asyncio
 async def test_thread_termination(enternity_thread: EternityThread):
     et = enternity_thread()
@@ -117,7 +118,7 @@ async def test_thread_termination(enternity_thread: EternityThread):
 
 
 @pytest.mark.asyncio
-async def test_worker(sleepy_woker:SleepyWorker):
+async def test_worker(sleepy_woker: SleepyWorker):
     p = sleepy_woker()
     p.start()
 
@@ -138,6 +139,8 @@ async def test_worker_terminate(enternity_worker: EternityWorker):
     start = loop.time()
     et.terminate()
     end = loop.time()
-    with pytest.raises(PrematureStopException, match="Thread was stopped prematurely..."):
-        r = await et
+    with pytest.raises(
+        PrematureStopException, match="Thread was stopped prematurely..."
+    ):
+        await et
     assert (end - start) < 300, "termination failed"

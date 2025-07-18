@@ -25,6 +25,7 @@ import asyncio
 import threading
 from typing import Callable, Optional, Union
 
+
 class Lock:
     """A Special lock that can be shared over asyncio and threads alike"""
 

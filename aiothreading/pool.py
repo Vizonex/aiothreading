@@ -209,18 +209,15 @@ class ThreadPool:
         initializer: Optional[Callable[..., Any]] = None,
         initargs: Sequence[Any] = (),
         # Sheduled for removal in soon as a performance optimization
-        
         childconcurrency: int = CHILD_CONCURRENCY,
-        
         loop_initializer: Optional[LoopInitializer] = None,
         exception_handler: Optional[Callable[[BaseException], None]] = None,
-        *,        
+        *,
         scheduler: Optional[
             Scheduler
         ] = None,  # Scheduler is now Deprecated and no longer in use anymore
         maxtasksperchild: int = MAX_TASKS_PER_CHILD,
         queuecount: Optional[int] = None,  # queuecount is not used anymore
-
     ):
         if threads is None:
             if sys.version_info >= (3, 13):
