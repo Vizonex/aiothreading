@@ -18,10 +18,12 @@ from typing import (
     Coroutine,
     Dict,
     Generator,
+    Iterable,
     List,
     Optional,
     Sequence,
     TypeVar,
+    Union,
 )
 
 from aiologic import Condition, CountdownEvent, SimpleQueue
@@ -325,7 +327,7 @@ class ThreadPool:
     def map(
         self,
         func: Callable[[T], Coroutine[Any, Any, R]],
-        iterable: Sequence[T],
+        iterable: Union[Sequence[T], Iterable[T]],
     ) -> ThreadPoolResult[R]:
         """Run a coroutine once for each item in the iterable."""
         if not self.running:
