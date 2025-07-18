@@ -2,7 +2,7 @@ import asyncio
 import sys
 import threading
 from functools import partial
-from typing import Any, Callable
+from typing import Callable
 
 import pytest
 
@@ -47,24 +47,13 @@ else:
     UV_MARK = pytest.mark.uvloop
 
 
-def thread(*args, **kwargs) -> partial[Thread[Any]]:  # type: ignore[no-untyped-def]
-    return partial(Thread, *args, **kwargs)
-
-
-def worker(*args, **kwargs) -> partial[Worker[Any]]:  # type: ignore[no-untyped-def]
-    return partial(Worker, *args, **kwargs)
-
-
-def threadpool(*args, **kwargs) -> partial[ThreadPool]:  # type: ignore[no-untyped-def]
-    return partial(ThreadPool, *args, **kwargs)
-
-
 @pytest.fixture(  # type: ignore[misc]
     scope="session",
     params=(
-        thread(target=_sleepy, name="sleepy_thread"),
+        partial(Thread, target=_sleepy, name="sleepy_thread"),
         pytest.param(
-            thread(
+            partial(
+                Worker,
                 target=_sleepy,
                 name="sleepy_thread",
                 loop_initializer=new_uv_event_loop,
@@ -82,9 +71,10 @@ def sleepy_thread(
 @pytest.fixture(  # type: ignore[misc]
     scope="session",
     params=(
-        worker(target=_sleepy, name="sleepy_worker"),
+        partial(Worker, target=_sleepy, name="sleepy_worker"),
         pytest.param(
-            worker(
+            partial(
+                Worker,
                 target=_sleepy,
                 name="sleepy_worker",
                 loop_initializer=new_uv_event_loop,
@@ -100,9 +90,10 @@ def sleepy_woker(request: pytest.FixtureRequest) -> Callable[..., Thread[int]]:
 @pytest.fixture(  # type: ignore[misc]
     scope="session",
     params=(
-        thread(target=_eternity, name="enternity_thread"),
+        partial(Thread, target=_eternity, name="enternity_thread"),
         pytest.param(
-            thread(
+            partial(
+                Thread,
                 target=_eternity,
                 name="enternity_thread",
                 loop_initializer=new_uv_event_loop,
@@ -120,9 +111,10 @@ def enternity_thread(
 @pytest.fixture(  # type: ignore[misc]
     scope="session",
     params=(
-        worker(target=_eternity, name="enternity_thread"),
+        partial(Worker, target=_eternity, name="enternity_thread"),
         pytest.param(
-            worker(
+            partial(
+                Worker,
                 target=_eternity,
                 name="enternity_thread",
                 loop_initializer=new_uv_event_loop,
@@ -140,9 +132,9 @@ def enternity_worker(
 @pytest.fixture(  # type: ignore[misc]
     scope="session",
     params=(
-        threadpool(),
+        partial(ThreadPool),
         pytest.param(
-            threadpool(loop_initializer=new_uv_event_loop),
+            partial(ThreadPool, loop_initializer=new_uv_event_loop),
             marks=UV_MARK,
         ),
     ),
