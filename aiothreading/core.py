@@ -5,6 +5,7 @@
 
 import asyncio
 import threading
+from types import GenericAlias
 from typing import (
     Any,
     Callable,
@@ -18,8 +19,6 @@ from typing import (
     Sequence,
     Union,
 )
-
-from types import GenericAlias
 
 from aiologic import Event
 from aiologic.lowlevel import Flag

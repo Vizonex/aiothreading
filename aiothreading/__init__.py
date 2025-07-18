@@ -12,7 +12,7 @@ from .__version__ import __version__
 from .core import Thread, Worker
 from .pool import ThreadPool, ThreadPoolResult
 from .scheduler import RoundRobin, Scheduler
-from .types import QueueID, TaskID
+from .types import PrematureStopException, QueueID, TaskID
 
 __all__ = (
     "__version__",
@@ -20,6 +20,7 @@ __all__ = (
     "Worker",
     "ThreadPool",
     "ThreadPoolResult",
+    "PrematureStopException",
     "RoundRobin",
     "Scheduler",
     "QueueID",

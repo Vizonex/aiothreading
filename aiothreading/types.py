@@ -3,7 +3,6 @@
 # 2024 Modified by Vizonex
 
 import enum
-
 from asyncio import AbstractEventLoop, Task
 from dataclasses import dataclass
 from typing import (

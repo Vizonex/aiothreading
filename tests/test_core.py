@@ -1,15 +1,16 @@
 # # Modified by Vizonex
 
 # import asyncio
-import pytest
-from typing import Callable
-from aiothreading import Thread, Worker
-from aiothreading.core import PrematureStopException
-import threading
 import asyncio
+import threading
+from typing import Callable
+
+import pytest
+
+from aiothreading import PrematureStopException, Thread, Worker
 
 
-async def sleepy():
+async def sleepy() -> int:
     await asyncio.sleep(0.1)
     return threading.get_native_id()
 
@@ -21,28 +22,8 @@ EternityThread = Callable[..., Thread[None]]
 EternityWorker = Callable[..., Worker[None]]
 
 
-# # import sys
-# # import time
-# from unittest import TestCase, skip
-# from unittest.mock import patch
-
-# import aiothreading as ath
-# from tests.tests_help import (
-#     async_test,
-#     do_nothing,
-#     get_dummy_constant,
-#     initializer,
-#     raise_fn,
-#     sleepy,
-#     two,
-# )
-
-# def shut_up(exc):
-#     return
-
-
-@pytest.mark.asyncio
-async def test_thread(sleepy_thread: SleepyThread):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_thread(sleepy_thread: SleepyThread) -> None:
     p = sleepy_thread()
     p.start()
 
@@ -54,20 +35,20 @@ async def test_thread(sleepy_thread: SleepyThread):
     assert not p.is_alive()
 
 
-@pytest.mark.asyncio
-async def test_thread_await_1(sleepy_thread: SleepyThread):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_thread_await_1(sleepy_thread: SleepyThread) -> None:
     await sleepy_thread()
 
 
-@pytest.mark.asyncio
-async def test_thread_await_2(sleepy_thread: SleepyThread):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_thread_await_2(sleepy_thread: SleepyThread) -> None:
     t = sleepy_thread()
     t.start()
     await t
 
 
-@pytest.mark.asyncio
-async def test_thread_join(sleepy_thread: SleepyThread):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_thread_join(sleepy_thread: SleepyThread) -> None:
     t = sleepy_thread()
     t.start()
     await t.join()
@@ -79,8 +60,8 @@ async def test_thread_join(sleepy_thread: SleepyThread):
         await t.join()
 
 
-@pytest.mark.asyncio
-async def test_thread_daemon(sleepy_thread: SleepyThread):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_thread_daemon(sleepy_thread: SleepyThread) -> None:
     p = sleepy_thread()
     assert not p.daemon
     p.daemon = True
@@ -89,16 +70,16 @@ async def test_thread_daemon(sleepy_thread: SleepyThread):
     await p.join()
 
 
-@pytest.mark.asyncio
-async def test_thread_join_timeout(sleepy_thread: SleepyThread):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_thread_join_timeout(sleepy_thread: SleepyThread) -> None:
     t = sleepy_thread()
     t.start()
     # Should take no longer than 0.05 seconds so let's give it 0.1...
-    await t.join(0.1)  # type: ignore[arg-type]
+    await t.join(0.1)
 
 
-@pytest.mark.asyncio
-async def test_thread_join_timeout_2(enternity_thread: EternityThread):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_thread_join_timeout_2(enternity_thread: EternityThread) -> None:
     t = enternity_thread()
     t.start()
     with pytest.raises(asyncio.exceptions.TimeoutError):
@@ -107,8 +88,8 @@ async def test_thread_join_timeout_2(enternity_thread: EternityThread):
     t.terminate()
 
 
-@pytest.mark.asyncio
-async def test_thread_termination(enternity_thread: EternityThread):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_thread_termination(enternity_thread: EternityThread) -> None:
     et = enternity_thread()
     et.start()
     loop = asyncio.get_event_loop()
@@ -119,8 +100,8 @@ async def test_thread_termination(enternity_thread: EternityThread):
     assert (end - start) < 300, "termination failed"
 
 
-@pytest.mark.asyncio
-async def test_worker(sleepy_woker: SleepyWorker):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_worker(sleepy_woker: SleepyWorker) -> None:
     p = sleepy_woker()
     p.start()
 
@@ -133,8 +114,8 @@ async def test_worker(sleepy_woker: SleepyWorker):
     assert not p.is_alive()
 
 
-@pytest.mark.asyncio
-async def test_worker_terminate(enternity_worker: EternityWorker):
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_worker_terminate(enternity_worker: EternityWorker) -> None:
     et = enternity_worker()
     et.start()
     loop = asyncio.get_event_loop()

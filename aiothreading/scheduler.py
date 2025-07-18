@@ -3,12 +3,13 @@
 # 2024 Modified by Vizonex
 
 import itertools
+import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Awaitable, Callable, Dict, Iterator, List, Sequence
 
-from .types import QueueID, R, TaskID
 from aiologic import SimpleQueue
-import warnings
+
+from .types import QueueID, R, TaskID
 
 
 class Scheduler(ABC):
