@@ -61,13 +61,17 @@ def threadpool(*args, **kwargs):
         thread(target=_sleepy, name="sleepy_thread"),
         pytest.param(
             thread(
-                target=_sleepy, name="sleepy_thread", loop_initializer=new_uv_event_loop
+                target=_sleepy,
+                name="sleepy_thread",
+                loop_initializer=new_uv_event_loop,
             ),
             marks=UV_MARK,
         ),
     ),
 )
-def sleepy_thread(request: pytest.FixtureRequest) -> Callable[..., Thread[int]]:
+def sleepy_thread(
+    request: pytest.FixtureRequest,
+) -> Callable[..., Thread[int]]:
     return request.param
 
 
@@ -77,7 +81,9 @@ def sleepy_thread(request: pytest.FixtureRequest) -> Callable[..., Thread[int]]:
         worker(target=_sleepy, name="sleepy_worker"),
         pytest.param(
             worker(
-                target=_sleepy, name="sleepy_worker", loop_initializer=new_uv_event_loop
+                target=_sleepy,
+                name="sleepy_worker",
+                loop_initializer=new_uv_event_loop,
             ),
             marks=UV_MARK,
         ),
@@ -101,7 +107,9 @@ def sleepy_woker(request: pytest.FixtureRequest) -> Callable[..., Thread[int]]:
         ),
     ),
 )
-def enternity_thread(request: pytest.FixtureRequest) -> Callable[[], Thread[int]]:
+def enternity_thread(
+    request: pytest.FixtureRequest,
+) -> Callable[[], Thread[int]]:
     return request.param
 
 
@@ -119,7 +127,9 @@ def enternity_thread(request: pytest.FixtureRequest) -> Callable[[], Thread[int]
         ),
     ),
 )
-def enternity_worker(request: pytest.FixtureRequest) -> Callable[..., Worker[None]]:
+def enternity_worker(
+    request: pytest.FixtureRequest,
+) -> Callable[..., Worker[None]]:
     return request.param
 
 
@@ -127,8 +137,12 @@ def enternity_worker(request: pytest.FixtureRequest) -> Callable[..., Worker[Non
     scope="session",
     params=(
         threadpool(),
-        pytest.param(threadpool(loop_initializer=new_uv_event_loop), marks=UV_MARK),
+        pytest.param(
+            threadpool(loop_initializer=new_uv_event_loop), marks=UV_MARK
+        ),
     ),
 )
-def thread_pool_type(request: pytest.FixtureRequest) -> Callable[..., ThreadPool]:
+def thread_pool_type(
+    request: pytest.FixtureRequest,
+) -> Callable[..., ThreadPool]:
     return request.param

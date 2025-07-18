@@ -24,7 +24,14 @@ from types import GenericAlias
 from aiologic import Event
 from aiologic.lowlevel import Flag
 
-from .types import LoopInitializer, Namespace, PrematureStopException, R, StopEnum, Unit
+from .types import (
+    LoopInitializer,
+    Namespace,
+    PrematureStopException,
+    R,
+    StopEnum,
+    Unit,
+)
 
 
 async def not_implemented(*args: Any, **kwargs: Any) -> NoReturn:
@@ -78,7 +85,9 @@ class Thread(Generic[R]):
         if target is not None and not asyncio.iscoroutinefunction(target):
             raise ValueError("target must be coroutine function")
 
-        if initializer is not None and asyncio.iscoroutinefunction(initializer):
+        if initializer is not None and asyncio.iscoroutinefunction(
+            initializer
+        ):
             raise ValueError("initializer must be synchronous function")
 
         if loop_initializer is not None and asyncio.iscoroutinefunction(

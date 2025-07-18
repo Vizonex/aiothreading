@@ -31,8 +31,12 @@ from .core import Thread
 from .scheduler import Scheduler
 from .types import LoopInitializer, ProxyException, R, T
 
-MAX_TASKS_PER_CHILD = 0  # number of tasks to execute before recycling a child process
-CHILD_CONCURRENCY = 0  # number of tasks to execute simultaneously per child process
+MAX_TASKS_PER_CHILD = (
+    0  # number of tasks to execute before recycling a child process
+)
+CHILD_CONCURRENCY = (
+    0  # number of tasks to execute simultaneously per child process
+)
 
 _T = TypeVar("_T")
 

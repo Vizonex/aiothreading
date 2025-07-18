@@ -73,7 +73,9 @@ async def test_thread_join(sleepy_thread: SleepyThread):
     await t.join()
 
     t = sleepy_thread()
-    with pytest.raises(RuntimeError, match="must start thread before joining it"):
+    with pytest.raises(
+        RuntimeError, match="must start thread before joining it"
+    ):
         await t.join()
 
 
