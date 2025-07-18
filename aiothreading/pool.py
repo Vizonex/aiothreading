@@ -51,13 +51,13 @@ def _on_complete(
 
 
 async def _work(
+    any_completed: Condition[None],
+    all_completed: CountdownEvent,
+    exception_handler: Optional[Callable[[BaseException], None]],
     func: Callable[..., Coroutine[Any, Any, Any]],
     args: Sequence[Any],
     kwargs: Dict[str, Any],
     future: Future[Any],
-    any_completed: Condition[None],
-    all_completed: CountdownEvent,
-    exception_handler: Optional[Callable[[BaseException], None]],
 ) -> None:
     try:
         if future.cancelled():
@@ -138,11 +138,11 @@ class ThreadPoolWorker(Thread[None]):
 
                 self.all_completed.up()
                 asyncio.create_task(
-                    _work(  # type: ignore[call-arg]
-                        *task_info,
+                    _work(
                         self.any_completed,
                         self.all_completed,
                         self.exception_handler,
+                        *task_info,
                     )
                 )
             else:
@@ -155,7 +155,7 @@ class ThreadPoolWorker(Thread[None]):
 
     @property
     def pending(self) -> int:
-        return self.all_completed.value
+        return self.all_completed.value  # type:ignore[no-any-return]
 
 
 class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):

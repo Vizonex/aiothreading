@@ -1,3 +1,5 @@
+__pypackages__
+_build
 .bzr
 .direnv
 .eggs
@@ -16,8 +18,7 @@
 .tox
 .venv
 .vscode
-__pypackages__
-_build
+*.egg-info
 buck-out
 build
 dist
