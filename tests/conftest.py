@@ -11,11 +11,11 @@ from aiothreading import Thread, ThreadPool, Worker
 # XXX: Policies are deprecated in 3.14 and onwards
 if sys.version_info <= (3, 13):
     if sys.platform == "win32":
-        from winloop import EventLoopPolicy
+        from winloop import EventLoopPolicy  # type: ignore[import-not-found]
     else:
-        from uvloop import EventLoopPolicy
+        from uvloop import EventLoopPolicy  # type: ignore[import-not-found]
 
-    @pytest.fixture(  # type: ignore[misc]
+    @pytest.fixture(
         scope="session",
         params=(
             EventLoopPolicy(),
@@ -47,7 +47,7 @@ else:
     UV_MARK = pytest.mark.uvloop
 
 
-@pytest.fixture(  # type: ignore[misc]
+@pytest.fixture(
     scope="session",
     params=(
         partial(Thread, target=_sleepy, name="sleepy_thread"),
@@ -68,7 +68,7 @@ def sleepy_thread(
     return request.param  # type: ignore[no-any-return]
 
 
-@pytest.fixture(  # type: ignore[misc]
+@pytest.fixture(
     scope="session",
     params=(
         partial(Worker, target=_sleepy, name="sleepy_worker"),
@@ -87,7 +87,7 @@ def sleepy_woker(request: pytest.FixtureRequest) -> Callable[..., Thread[int]]:
     return request.param  # type: ignore[no-any-return]
 
 
-@pytest.fixture(  # type: ignore[misc]
+@pytest.fixture(
     scope="session",
     params=(
         partial(Thread, target=_eternity, name="enternity_thread"),
@@ -108,7 +108,7 @@ def enternity_thread(
     return request.param  # type: ignore[no-any-return]
 
 
-@pytest.fixture(  # type: ignore[misc]
+@pytest.fixture(
     scope="session",
     params=(
         partial(Worker, target=_eternity, name="enternity_thread"),
@@ -129,7 +129,7 @@ def enternity_worker(
     return request.param  # type: ignore[no-any-return]
 
 
-@pytest.fixture(  # type: ignore[misc]
+@pytest.fixture(
     scope="session",
     params=(
         partial(ThreadPool),

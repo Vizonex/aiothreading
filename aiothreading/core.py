@@ -5,7 +5,6 @@
 
 import asyncio
 import threading
-from types import GenericAlias
 from typing import (
     Any,
     Callable,
@@ -230,8 +229,6 @@ class Thread(Generic[R]):
                     loop.call_soon_threadsafe(task.cancel)
                 except RuntimeError:  # event loop is closed
                     pass
-
-    __class_getitem__ = classmethod(GenericAlias)  # type: ignore
 
 
 class Worker(Thread[R]):

@@ -30,14 +30,14 @@ async def starmapper(*values: int) -> list[int]:
     return [value * 2 for value in values]
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_pool(thread_pool_type: Callable[..., ThreadPool]) -> None:
     async with thread_pool_type(2) as s:
         result = await s.submit(mapper, 1)
         assert result == 2
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_pool_map(thread_pool_type: Callable[..., ThreadPool]) -> None:
     data = [i for i in range(40)]
     results = [i * 2 for i in range(40)]
@@ -48,7 +48,7 @@ async def test_pool_map(thread_pool_type: Callable[..., ThreadPool]) -> None:
 
 if not SKIP_ASYNC_TIMEOUT:
 
-    @pytest.mark.asyncio  # type: ignore[misc]
+    @pytest.mark.asyncio
     async def test_pool_can_execute_quick_enough(
         thread_pool_type: Callable[..., ThreadPool],
     ) -> None:

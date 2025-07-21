@@ -21,7 +21,7 @@ EternityThread = Callable[..., Thread[None]]
 EternityWorker = Callable[..., Worker[None]]
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_thread(sleepy_thread: SleepyThread) -> None:
     p = sleepy_thread()
     p.start()
@@ -34,19 +34,19 @@ async def test_thread(sleepy_thread: SleepyThread) -> None:
     assert not p.is_alive()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_thread_await_1(sleepy_thread: SleepyThread) -> None:
     await sleepy_thread()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_thread_await_2(sleepy_thread: SleepyThread) -> None:
     t = sleepy_thread()
     t.start()
     await t
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_thread_join(sleepy_thread: SleepyThread) -> None:
     t = sleepy_thread()
     t.start()
@@ -59,7 +59,7 @@ async def test_thread_join(sleepy_thread: SleepyThread) -> None:
         await t.join()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_thread_daemon(sleepy_thread: SleepyThread) -> None:
     p = sleepy_thread()
     assert not p.daemon
@@ -69,7 +69,7 @@ async def test_thread_daemon(sleepy_thread: SleepyThread) -> None:
     await p.join()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_thread_join_timeout(sleepy_thread: SleepyThread) -> None:
     t = sleepy_thread()
     t.start()
@@ -77,7 +77,7 @@ async def test_thread_join_timeout(sleepy_thread: SleepyThread) -> None:
     await t.join(0.1)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_thread_join_timeout_2(enternity_thread: EternityThread) -> None:
     t = enternity_thread()
     t.start()
@@ -87,7 +87,7 @@ async def test_thread_join_timeout_2(enternity_thread: EternityThread) -> None:
     t.terminate()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_thread_termination(enternity_thread: EternityThread) -> None:
     et = enternity_thread()
     et.start()
@@ -99,7 +99,7 @@ async def test_thread_termination(enternity_thread: EternityThread) -> None:
     assert (end - start) < 300, "termination failed"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_worker(sleepy_woker: SleepyWorker) -> None:
     p = sleepy_woker()
     p.start()
@@ -113,7 +113,7 @@ async def test_worker(sleepy_woker: SleepyWorker) -> None:
     assert not p.is_alive()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_worker_terminate(enternity_worker: EternityWorker) -> None:
     et = enternity_worker()
     et.start()

@@ -27,7 +27,7 @@ from typing import (
 )
 
 from aiologic import Condition, CountdownEvent, SimpleQueue
-from deprecated_params import deprecated_params
+from deprecated_params import deprecated_params  # type: ignore[import-untyped]
 
 from .core import Thread
 from .scheduler import Scheduler
@@ -157,7 +157,7 @@ class ThreadPoolWorker(Thread[None]):
 
     @property
     def pending(self) -> int:
-        return self.all_completed.value  # type:ignore[no-any-return]
+        return self.all_completed.value
 
 
 class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
