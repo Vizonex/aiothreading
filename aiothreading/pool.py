@@ -18,21 +18,27 @@ from typing import (
     Coroutine,
     Dict,
     Generator,
+    Iterable,
     List,
     Optional,
     Sequence,
     TypeVar,
+    Union,
 )
 
 from aiologic import Condition, CountdownEvent, SimpleQueue
-from deprecated_params import deprecated_params
+from deprecated_params import deprecated_params  # type: ignore[import-untyped]
 
 from .core import Thread
 from .scheduler import Scheduler
 from .types import LoopInitializer, ProxyException, R, T
 
-MAX_TASKS_PER_CHILD = 0  # number of tasks to execute before recycling a child process
-CHILD_CONCURRENCY = 0  # number of tasks to execute simultaneously per child process
+MAX_TASKS_PER_CHILD = (
+    0  # number of tasks to execute before recycling a child process
+)
+CHILD_CONCURRENCY = (
+    0  # number of tasks to execute simultaneously per child process
+)
 
 _T = TypeVar("_T")
 
@@ -47,13 +53,13 @@ def _on_complete(
 
 
 async def _work(
+    any_completed: Condition[None],
+    all_completed: CountdownEvent,
+    exception_handler: Optional[Callable[[BaseException], None]],
     func: Callable[..., Coroutine[Any, Any, Any]],
     args: Sequence[Any],
     kwargs: Dict[str, Any],
     future: Future[Any],
-    any_completed: Condition[None],
-    all_completed: CountdownEvent,
-    exception_handler: Optional[Callable[[BaseException], None]],
 ) -> None:
     try:
         if future.cancelled():
@@ -135,10 +141,10 @@ class ThreadPoolWorker(Thread[None]):
                 self.all_completed.up()
                 asyncio.create_task(
                     _work(
-                        *task_info,
                         self.any_completed,
                         self.all_completed,
                         self.exception_handler,
+                        *task_info,
                     )
                 )
             else:
@@ -195,9 +201,9 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
 @deprecated_params(
     ["scheduler", "maxtasksperchild", "queuecount"],
     {
-        "scheduler": "Removed for Performance Optimizations, Sheduled for deletion in 0.1.5",
-        "maxtasksperchild": "Removed for Performance Optimizations, Sheduled for deletion in 0.1.5",
-        "queuecount": "Unused currently, Scheduled for deletetion in 0.1.6",
+        "scheduler": "Removed for Performance Optimizations, Scheduled for deletion in 0.1.5",
+        "maxtasksperchild": "Removed for Performance Optimizations, Scheduled for deletion in 0.1.5",
+        "queuecount": "Unused currently, Scheduled for deletion in 0.1.6",
     },
 )
 class ThreadPool:
@@ -208,19 +214,16 @@ class ThreadPool:
         threads: Optional[int] = None,
         initializer: Optional[Callable[..., Any]] = None,
         initargs: Sequence[Any] = (),
-        # Sheduled for removal in soon as a performance optimization
-        
+        # Scheduled for removal in soon as a performance optimization
         childconcurrency: int = CHILD_CONCURRENCY,
-        
         loop_initializer: Optional[LoopInitializer] = None,
         exception_handler: Optional[Callable[[BaseException], None]] = None,
-        *,        
+        *,
         scheduler: Optional[
             Scheduler
         ] = None,  # Scheduler is now Deprecated and no longer in use anymore
         maxtasksperchild: int = MAX_TASKS_PER_CHILD,
         queuecount: Optional[int] = None,  # queuecount is not used anymore
-
     ):
         if threads is None:
             if sys.version_info >= (3, 13):
@@ -240,7 +243,7 @@ class ThreadPool:
 
         # NOTE: Renamed processes to threads since were dealing with threads - Vizonex
 
-        # Were going to use a list instead of a dicitonary for initalization
+        # Were going to use a list instead of a dictionary for initialization
         # This is more or less an optimization
         self.threads: List[ThreadPoolWorker] = []
         self.thread_count = threads
@@ -324,7 +327,7 @@ class ThreadPool:
     def map(
         self,
         func: Callable[[T], Coroutine[Any, Any, R]],
-        iterable: Sequence[T],
+        iterable: Union[Sequence[T], Iterable[T]],
     ) -> ThreadPoolResult[R]:
         """Run a coroutine once for each item in the iterable."""
         if not self.running:

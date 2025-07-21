@@ -3,18 +3,30 @@
 # 2024 Modified by Vizonex
 
 import itertools
+import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Awaitable, Callable, Dict, Iterator, List, Sequence
 
-from .types import Queue, QueueID, R, TaskID
+from aiologic import SimpleQueue
 
-# TODO: Deprecate in a later version...
+from .types import QueueID, R, TaskID
+
+
 class Scheduler(ABC):
+    def __init__(self) -> None:
+        warnings.warn(
+            "Scheduler & RoundRobin are deprecated and not used anymore, Planned for removal in 0.1.8",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        super().__init__()
+
     @abstractmethod
-    def register_queue(self, tx: Queue) -> QueueID:
+    def register_queue(self, tx: SimpleQueue[Any]) -> QueueID:
         """
         Notify the scheduler when the pool creates a new transmit queue.
         """
+        return QueueID(0)
 
     @abstractmethod
     def register_thread(self, qid: QueueID) -> None:
@@ -64,7 +76,7 @@ class RoundRobin(Scheduler):
         self.next_id = itertools.count()
         self.cycler: Iterator[QueueID] = itertools.cycle([])
 
-    def register_queue(self, tx: Queue) -> QueueID:
+    def register_queue(self, tx: SimpleQueue[Any]) -> QueueID:
         return QueueID(next(self.next_id))
 
     def register_thread(self, qid: QueueID) -> None:

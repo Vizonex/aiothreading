@@ -22,7 +22,7 @@ deserves to reach it's limits no matter how big or small it is.
 Aiothreading was meant to fill in these gaps as well as working around 
 the speed-caps in the concurrent futures module. 
 Event-loops can only take in so many tasks at a given time and having a second 
-one in a seperate thread can greatly lift it's burden. 
+one in a separate thread can greatly lift it's burden. 
 Maybe you just want to run something in the background of your 
 fastapi or aiohttp server while minimizing the load-times in the 
 front-end. 

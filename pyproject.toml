@@ -27,3 +27,8 @@ classifiers=[
     homepage = "https://github.com/Vizonex/aiothreading"
     repository = "https://github.com/Vizonex/aiothreading.git"
 
+[tool.ruff]
+line-length = 79
+indent-width = 4
+target-version = "py39"
+fix = true

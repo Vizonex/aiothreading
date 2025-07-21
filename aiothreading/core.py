@@ -19,12 +19,17 @@ from typing import (
     Union,
 )
 
-from types import GenericAlias
-
 from aiologic import Event
 from aiologic.lowlevel import Flag
 
-from .types import LoopInitializer, Namespace, PrematureStopException, R, StopEnum, Unit
+from .types import (
+    LoopInitializer,
+    Namespace,
+    PrematureStopException,
+    R,
+    StopEnum,
+    Unit,
+)
 
 
 async def not_implemented(*args: Any, **kwargs: Any) -> NoReturn:
@@ -78,7 +83,9 @@ class Thread(Generic[R]):
         if target is not None and not asyncio.iscoroutinefunction(target):
             raise ValueError("target must be coroutine function")
 
-        if initializer is not None and asyncio.iscoroutinefunction(initializer):
+        if initializer is not None and asyncio.iscoroutinefunction(
+            initializer
+        ):
             raise ValueError("initializer must be synchronous function")
 
         if loop_initializer is not None and asyncio.iscoroutinefunction(
@@ -163,7 +170,7 @@ class Thread(Generic[R]):
         """Start the child thread."""
         return self.aio_thread.start()
 
-    async def join(self, timeout: Optional[int] = None) -> Any:
+    async def join(self, timeout: Optional[float] = None) -> Any:
         """Wait for the process to finish execution without blocking the main thread."""
         if not self.is_started():
             raise RuntimeError("must start thread before joining it")
@@ -223,8 +230,6 @@ class Thread(Generic[R]):
                 except RuntimeError:  # event loop is closed
                     pass
 
-    __class_getitem__ = classmethod(GenericAlias) # type: ignore
-
 
 class Worker(Thread[R]):
     # TODO: fix __init__ and all arguments to it.
@@ -264,7 +269,7 @@ class Worker(Thread[R]):
 
         return result
 
-    async def join(self, timeout: Optional[int] = None) -> R:
+    async def join(self, timeout: Optional[float] = None) -> R:
         """Wait for the worker to finish, and return the final result."""
         await super().join(timeout)
         return self.result
