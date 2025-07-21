@@ -1,4 +1,0 @@
-line-length = 79
-indent-width = 4
-target-version = "py39"
-fix = true
