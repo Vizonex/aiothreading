@@ -7,18 +7,17 @@ from abc import ABC, abstractmethod
 from typing import Any, Awaitable, Callable, Dict, Iterator, List, Sequence
 
 from aiologic import SimpleQueue
-from deprecation import deprecated
+from deprecation_alias import deprecated
 from .types import QueueID, R, TaskID
-
 
 
 class Scheduler(ABC):
     @deprecated(
         "0.1.5",
         removed_in="0.1.8",
-        details="Shedules have no purpose in aiothreading anymore"
+        details="Schedulers have no purpose in aiothreading anymore",
     )
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
@@ -60,10 +59,11 @@ class Scheduler(ABC):
         Notify the scheduler that a task has been completed.
         """
 
+
 @deprecated(
     "0.1.5",
     removed_in="0.1.8",
-    details="Shedules have no purpose in aiothreading anymore"
+    details="Schedulers have no purpose in aiothreading anymore",
 )
 class RoundRobin(Scheduler):
     """
@@ -73,10 +73,11 @@ class RoundRobin(Scheduler):
     accordingly. For example, 12 processes over 8 queues should result in four queues
     receiving double the number tasks compared to the other eight.
     """
+
     @deprecated(
         "0.1.5",
         removed_in="0.1.8",
-        details="Shedules have no purpose in aiothreading anymore"
+        details="Schedulers have no purpose in aiothreading anymore",
     )
     def __init__(self) -> None:
         super().__init__()

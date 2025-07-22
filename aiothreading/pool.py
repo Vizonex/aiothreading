@@ -32,7 +32,7 @@ from deprecated_params import deprecated_params  # type: ignore[import-untyped]
 from .core import Thread
 from .types import LoopInitializer, ProxyException, R, T
 
-from deprecation import deprecated
+from deprecation_alias import deprecated
 
 
 MAX_TASKS_PER_CHILD = (
@@ -201,8 +201,7 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
 
 
 @deprecated_params(
-    ["queuecount"],
-    "Unused currently, Scheduled for deletion in 0.1.6"
+    ["queuecount"], "Unused currently, Scheduled for deletion in 0.1.6"
 )
 class ThreadPool:
     """Execute coroutines on a pool of threads."""
