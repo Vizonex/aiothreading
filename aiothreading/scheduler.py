@@ -3,22 +3,22 @@
 # 2024 Modified by Vizonex
 
 import itertools
-import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Awaitable, Callable, Dict, Iterator, List, Sequence
 
 from aiologic import SimpleQueue
-
+from deprecation import deprecated
 from .types import QueueID, R, TaskID
 
 
+
 class Scheduler(ABC):
-    def __init__(self) -> None:
-        warnings.warn(
-            "Scheduler & RoundRobin are deprecated and not used anymore, Planned for removal in 0.1.8",
-            DeprecationWarning,
-            stacklevel=3,
-        )
+    @deprecated(
+        "0.1.5",
+        removed_in="0.1.8",
+        details="Shedules have no purpose in aiothreading anymore"
+    )
+    def __init__(self):
         super().__init__()
 
     @abstractmethod
@@ -60,7 +60,11 @@ class Scheduler(ABC):
         Notify the scheduler that a task has been completed.
         """
 
-
+@deprecated(
+    "0.1.5",
+    removed_in="0.1.8",
+    details="Shedules have no purpose in aiothreading anymore"
+)
 class RoundRobin(Scheduler):
     """
     The default scheduling algorithm that assigns tasks to queues in round robin order.
@@ -69,7 +73,11 @@ class RoundRobin(Scheduler):
     accordingly. For example, 12 processes over 8 queues should result in four queues
     receiving double the number tasks compared to the other eight.
     """
-
+    @deprecated(
+        "0.1.5",
+        removed_in="0.1.8",
+        details="Shedules have no purpose in aiothreading anymore"
+    )
     def __init__(self) -> None:
         super().__init__()
         self.qids: List[QueueID] = []
