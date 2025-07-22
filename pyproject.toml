@@ -10,9 +10,8 @@ authors = [
 requires-python = ">=3.9"
 dependencies = [
     "aiologic>=0.13.0",
-    "deprecated-params==0.1.5",
-    'deprecation>=2.1.0',
-    'deprecation-alias>=0.4.0'
+    "deprecated-params>=0.1.5",
+    'deprecation-alias>=0.3.0'
 ]
 keywords=["aiothreading", "threading", "asyncio"]
 
