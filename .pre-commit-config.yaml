@@ -16,6 +16,7 @@ repos:
       - pytest
       - pytest-asyncio
       - types-setuptools
+      - deprecation-alias
 - repo: https://github.com/codespell-project/codespell
   rev: v2.2.6
   hooks:

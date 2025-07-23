@@ -30,8 +30,10 @@ from aiologic import Condition, CountdownEvent, SimpleQueue
 from deprecated_params import deprecated_params  # type: ignore[import-untyped]
 
 from .core import Thread
-from .scheduler import Scheduler
 from .types import LoopInitializer, ProxyException, R, T
+
+from deprecation_alias import deprecated
+
 
 MAX_TASKS_PER_CHILD = (
     0  # number of tasks to execute before recycling a child process
@@ -199,12 +201,7 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
 
 
 @deprecated_params(
-    ["scheduler", "maxtasksperchild", "queuecount"],
-    {
-        "scheduler": "Removed for Performance Optimizations, Scheduled for deletion in 0.1.5",
-        "maxtasksperchild": "Removed for Performance Optimizations, Scheduled for deletion in 0.1.5",
-        "queuecount": "Unused currently, Scheduled for deletion in 0.1.6",
-    },
+    ["queuecount"], "Unused currently, Scheduled for deletion in 0.1.6"
 )
 class ThreadPool:
     """Execute coroutines on a pool of threads."""
@@ -219,10 +216,6 @@ class ThreadPool:
         loop_initializer: Optional[LoopInitializer] = None,
         exception_handler: Optional[Callable[[BaseException], None]] = None,
         *,
-        scheduler: Optional[
-            Scheduler
-        ] = None,  # Scheduler is now Deprecated and no longer in use anymore
-        maxtasksperchild: int = MAX_TASKS_PER_CHILD,
         queuecount: Optional[int] = None,  # queuecount is not used anymore
     ):
         if threads is None:
@@ -237,7 +230,6 @@ class ThreadPool:
         self.initializer = initializer
         self.initargs = initargs
         self.loop_initializer = loop_initializer
-        self.maxtasksperchild = maxtasksperchild
         self.childconcurrency = childconcurrency
         self.exception_handler = exception_handler
 
@@ -272,7 +264,6 @@ class ThreadPool:
 
             thread = ThreadPoolWorker(
                 SimpleQueue(),
-                # self.maxtasksperchild,
                 self.childconcurrency,
                 initializer=self.initializer,
                 initargs=self.initargs,
@@ -308,7 +299,11 @@ class ThreadPool:
 
         return asyncio.wrap_future(future)
 
-    # TODO: Deprecate apply in replacement of submit...
+    @deprecated(
+        deprecated_in="0.1.5",
+        removed_in="0.1.9",
+        details="Use submit() method instead",
+    )
     async def apply(
         self,
         func: Callable[..., Coroutine[Any, Any, R]],

@@ -3,22 +3,21 @@
 # 2024 Modified by Vizonex
 
 import itertools
-import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Awaitable, Callable, Dict, Iterator, List, Sequence
 
 from aiologic import SimpleQueue
-
+from deprecation_alias import deprecated
 from .types import QueueID, R, TaskID
 
 
 class Scheduler(ABC):
+    @deprecated(
+        "0.1.5",
+        removed_in="0.1.8",
+        details="Schedulers have no purpose in aiothreading anymore",
+    )
     def __init__(self) -> None:
-        warnings.warn(
-            "Scheduler & RoundRobin are deprecated and not used anymore, Planned for removal in 0.1.8",
-            DeprecationWarning,
-            stacklevel=3,
-        )
         super().__init__()
 
     @abstractmethod
@@ -70,6 +69,11 @@ class RoundRobin(Scheduler):
     receiving double the number tasks compared to the other eight.
     """
 
+    @deprecated(
+        "0.1.5",
+        removed_in="0.1.8",
+        details="Schedulers have no purpose in aiothreading anymore",
+    )
     def __init__(self) -> None:
         super().__init__()
         self.qids: List[QueueID] = []
