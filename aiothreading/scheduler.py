@@ -60,11 +60,6 @@ class Scheduler(ABC):
         """
 
 
-@deprecated(
-    "0.1.5",
-    removed_in="0.1.8",
-    details="Schedulers have no purpose in aiothreading anymore",
-)
 class RoundRobin(Scheduler):
     """
     The default scheduling algorithm that assigns tasks to queues in round robin order.
