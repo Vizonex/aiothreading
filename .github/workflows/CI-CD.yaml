@@ -58,7 +58,7 @@ jobs:
         submodules: true
     - name: Setup Python ${{ matrix.pyver }}
       id: python-install
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         allow-prereleases: true
         python-version: ${{ matrix.pyver }}
