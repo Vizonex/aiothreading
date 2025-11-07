@@ -2,7 +2,7 @@ import asyncio
 import sys
 import threading
 from functools import partial
-from typing import Awaitable, Callable
+from typing import Callable
 
 import pytest
 from _pytest.mark.structures import ParameterSet  # typehinting
@@ -46,7 +46,7 @@ def anyio_backend(request):
 
 
 def thread_fixtures(
-    thread_type: type[Thread], target: Callable[..., Awaitable[R]], name: str
+    thread_type: type[Thread], target: Callable[..., R], name: str
 ) -> list[ParameterSet]:
     if uvloop is not None:
         return [
@@ -67,7 +67,7 @@ def thread_fixtures(
     else:
         return [
             pytest.param(
-                partial(Thread, target=target, name=name),
+                partial(thread_type, target=target, name=name),
                 id="asyncio-thread",
             )
         ]
