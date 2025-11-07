@@ -2,7 +2,7 @@ import asyncio
 import sys
 import threading
 from functools import partial
-from typing import Callable
+from typing import Callable, Coroutine, Any
 
 import pytest
 from _pytest.mark.structures import ParameterSet  # typehinting
@@ -14,9 +14,9 @@ try:
     if sys.platform != "win32":
         import uvloop
     else:
-        import winloop as uvloop
+        import winloop as uvloop # type: ignore
 except ModuleNotFoundError:
-    uvloop = None
+    uvloop = None # type: ignore
 
 
 async def _sleepy() -> int:
@@ -46,7 +46,7 @@ def anyio_backend(request):
 
 
 def thread_fixtures(
-    thread_type: type[Thread], target: Callable[..., R], name: str
+    thread_type: type[Thread], target: Callable[..., Coroutine[Any, Any, R]], name: str
 ) -> list[ParameterSet]:
     if uvloop is not None:
         return [
