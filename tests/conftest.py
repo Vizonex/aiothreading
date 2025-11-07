@@ -4,7 +4,6 @@ import threading
 from functools import partial
 from typing import Awaitable, Callable
 
-import anyio.pytest_plugin
 import pytest
 from _pytest.mark.structures import ParameterSet  # typehinting
 
