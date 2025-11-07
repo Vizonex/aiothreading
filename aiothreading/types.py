@@ -20,8 +20,7 @@ from typing import (
     Union,
 )
 
-from aiologic import Event, SimpleQueue
-from aiologic.lowlevel import Flag
+from aiologic import Event, Flag, SimpleQueue
 
 T = TypeVar("T")
 R = TypeVar("R")
