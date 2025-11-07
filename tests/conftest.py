@@ -2,30 +2,22 @@ import asyncio
 import sys
 import threading
 from functools import partial
-from typing import Callable
+from typing import Awaitable, Callable
 
+import anyio.pytest_plugin
 import pytest
+from _pytest.mark.structures import ParameterSet # typehinting
 
 from aiothreading import Thread, ThreadPool, Worker
+from aiothreading.types import R
 
-# XXX: Policies are deprecated in 3.14 and onwards
-if sys.version_info <= (3, 13):
-    if sys.platform == "win32":
-        from winloop import EventLoopPolicy  # type: ignore[import-not-found]
+try:
+    if sys.platform != "win32":
+        import uvloop
     else:
-        from uvloop import EventLoopPolicy  # type: ignore[import-not-found]
-
-    @pytest.fixture(
-        scope="session",
-        params=(
-            EventLoopPolicy(),
-            asyncio.DefaultEventLoopPolicy(),
-        ),
-    )
-    def event_loop_policy(
-        request: pytest.FixtureRequest,
-    ) -> asyncio.AbstractEventLoopPolicy:
-        return request.param  # type: ignore[no-any-return]
+        import winloop as uvloop
+except ModuleNotFoundError:
+    uvloop = None
 
 
 async def _sleepy() -> int:
@@ -36,31 +28,54 @@ async def _sleepy() -> int:
 async def _eternity() -> None:
     await asyncio.sleep(300)
 
+@pytest.fixture(params=[
+    pytest.param(('asyncio', {'loop_factory': uvloop.new_event_loop}), id='asyncio+uvloop'),
+    pytest.param(('asyncio', {'loop_factory': uvloop.new_event_loop}), id='asyncio'),
+    
+    # TODO: Coming soon...
+    # pytest.param(('trio', {'restrict_keyboard_interrupt_to_checkpoints': True}), id='trio')
+])
+def anyio_backend(request):
+    return request.param
 
-if sys.platform == "win32":
-    from winloop import new_event_loop as new_uv_event_loop
 
-    UV_MARK = pytest.mark.winloop
-else:
-    from uvloop import new_event_loop as new_uv_event_loop
+def thread_fixtures(thread_type:type[Thread] , target:Callable[..., Awaitable[R]], name:str) -> list[ParameterSet]:
+    if uvloop is not None:
+    
+        return [
+            pytest.param(
+                partial(thread_type, target=target, name=name),
+                id="asyncio-thread",
+            ),
+            pytest.param(
+                partial(thread_type, target=target, name=name, loop_initializer=uvloop.new_event_loop),
+                id="uvloop-thread"
+            ),
+        ]
+    else:
+        return [
+            pytest.param(
+                partial(Thread, target=target, name=name),
+                id="asyncio-thread",
+            )
+        ]
 
-    UV_MARK = pytest.mark.uvloop
+def thread_pool_fixtures(thread_pool_type:type[ThreadPool]) -> list[ParameterSet]:
+    if uvloop is not None:
+        return [
+            pytest.param(thread_pool_type, id="threadpool-asyncio"),
+            pytest.param(partial(thread_pool_type, loop_initializer=uvloop.new_event_loop), id="threadpool-uvloop"),
+        ]
+    else:
+        return [
+            pytest.param(thread_pool_type, id="threadpool-asyncio"),
+        ]
+
 
 
 @pytest.fixture(
     scope="session",
-    params=(
-        partial(Thread, target=_sleepy, name="sleepy_thread"),
-        pytest.param(
-            partial(
-                Worker,
-                target=_sleepy,
-                name="sleepy_thread",
-                loop_initializer=new_uv_event_loop,
-            ),
-            marks=UV_MARK,
-        ),
-    ),
+    params=thread_fixtures(Thread, _sleepy, "sleepy_thread"),
 )
 def sleepy_thread(
     request: pytest.FixtureRequest,
@@ -70,18 +85,7 @@ def sleepy_thread(
 
 @pytest.fixture(
     scope="session",
-    params=(
-        partial(Worker, target=_sleepy, name="sleepy_worker"),
-        pytest.param(
-            partial(
-                Worker,
-                target=_sleepy,
-                name="sleepy_worker",
-                loop_initializer=new_uv_event_loop,
-            ),
-            marks=UV_MARK,
-        ),
-    ),
+    params=thread_fixtures(Worker, _sleepy, "sleepy_worker")
 )
 def sleepy_woker(request: pytest.FixtureRequest) -> Callable[..., Thread[int]]:
     return request.param  # type: ignore[no-any-return]
@@ -89,18 +93,7 @@ def sleepy_woker(request: pytest.FixtureRequest) -> Callable[..., Thread[int]]:
 
 @pytest.fixture(
     scope="session",
-    params=(
-        partial(Thread, target=_eternity, name="enternity_thread"),
-        pytest.param(
-            partial(
-                Thread,
-                target=_eternity,
-                name="enternity_thread",
-                loop_initializer=new_uv_event_loop,
-            ),
-            marks=UV_MARK,
-        ),
-    ),
+    params=thread_fixtures(Thread, _eternity, "enternity_thread")
 )
 def enternity_thread(
     request: pytest.FixtureRequest,
@@ -110,18 +103,7 @@ def enternity_thread(
 
 @pytest.fixture(
     scope="session",
-    params=(
-        partial(Worker, target=_eternity, name="enternity_thread"),
-        pytest.param(
-            partial(
-                Worker,
-                target=_eternity,
-                name="enternity_thread",
-                loop_initializer=new_uv_event_loop,
-            ),
-            marks=UV_MARK,
-        ),
-    ),
+    params=thread_fixtures(Worker, _eternity, "enternity_worker")
 )
 def enternity_worker(
     request: pytest.FixtureRequest,
@@ -131,13 +113,7 @@ def enternity_worker(
 
 @pytest.fixture(
     scope="session",
-    params=(
-        partial(ThreadPool),
-        pytest.param(
-            partial(ThreadPool, loop_initializer=new_uv_event_loop),
-            marks=UV_MARK,
-        ),
-    ),
+    params=thread_pool_fixtures(ThreadPool)
 )
 def thread_pool_type(
     request: pytest.FixtureRequest,
