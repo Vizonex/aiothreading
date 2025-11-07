@@ -19,8 +19,7 @@ from typing import (
     Union,
 )
 
-from aiologic import Event
-from aiologic.lowlevel import Flag
+from aiologic import Event, Flag
 
 from .types import (
     LoopInitializer,
