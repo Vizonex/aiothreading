@@ -27,7 +27,6 @@ from typing import (
 )
 
 from aiologic import Condition, CountdownEvent, SimpleQueue
-from deprecated_params import deprecated_params  # type: ignore[import-untyped]
 
 from .core import Thread
 from .types import LoopInitializer, ProxyException, R, T
@@ -199,10 +198,6 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
 # Pool Class Such as the removal of terminating since threads can't terminate
 # Pool was also renamed to ThreadPool so aiomultiprocess doesn't overlap itself...
 
-
-@deprecated_params(
-    ["queuecount"], "Unused currently, Scheduled for deletion in 0.1.6"
-)
 class ThreadPool:
     """Execute coroutines on a pool of threads."""
 
