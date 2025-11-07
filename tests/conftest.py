@@ -14,9 +14,9 @@ try:
     if sys.platform != "win32":
         import uvloop
     else:
-        import winloop as uvloop # type: ignore
+        import winloop as uvloop  # type: ignore
 except ModuleNotFoundError:
-    uvloop = None # type: ignore
+    uvloop = None  # type: ignore
 
 
 async def _sleepy() -> int:
@@ -46,7 +46,9 @@ def anyio_backend(request):
 
 
 def thread_fixtures(
-    thread_type: type[Thread], target: Callable[..., Coroutine[Any, Any, R]], name: str
+    thread_type: type[Thread],
+    target: Callable[..., Coroutine[Any, Any, R]],
+    name: str,
 ) -> list[ParameterSet]:
     if uvloop is not None:
         return [
