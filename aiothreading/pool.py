@@ -211,8 +211,6 @@ class ThreadPool:
         childconcurrency: int = CHILD_CONCURRENCY,
         loop_initializer: Optional[LoopInitializer] = None,
         exception_handler: Optional[Callable[[BaseException], None]] = None,
-        *,
-        queuecount: Optional[int] = None,  # queuecount is not used anymore
     ):
         if threads is None:
             if sys.version_info >= (3, 13):
