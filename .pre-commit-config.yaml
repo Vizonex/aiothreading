@@ -8,13 +8,12 @@ repos:
   rev: v1.17.0
   hooks:
   -   id: mypy
-      args: [--python-version, "3.9", --strict]
+      args: [--python-version, "3.10", --strict]
       additional_dependencies:  # see pre-commit/pre-commit#730
       - aiologic>=0.15.0
       - async-timeout
-      - deprecated-params>=0.1.3
       - pytest
-      - pytest-asyncio
+      - anyio
       - types-setuptools
       - deprecation-alias
 - repo: https://github.com/codespell-project/codespell
