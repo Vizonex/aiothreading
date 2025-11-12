@@ -83,9 +83,7 @@ class Thread(Generic[R]):
         if target is not None and not iscoroutinefunction(target):
             raise ValueError("target must be coroutine function")
 
-        if initializer is not None and iscoroutinefunction(
-            initializer
-        ):
+        if initializer is not None and iscoroutinefunction(initializer):
             raise ValueError("initializer must be synchronous function")
 
         if loop_initializer is not None and iscoroutinefunction(
