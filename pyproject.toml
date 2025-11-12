@@ -7,7 +7,7 @@ authors = [
     { name = "Vizonex", email="VizonexBusiness@gmail.com" },
     { name = "x42005e1f" }
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "aiologic>=0.15.0",
     'deprecation-alias>=0.3.0'
@@ -30,5 +30,5 @@ classifiers=[
 [tool.ruff]
 line-length = 79
 indent-width = 4
-target-version = "py39"
+target-version = "py310"
 fix = true
