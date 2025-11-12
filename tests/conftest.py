@@ -140,6 +140,7 @@ def sleepy_woker(request: pytest.FixtureRequest) -> Callable[..., Thread[int]]:
 @pytest.fixture(
     scope="session",
     params=thread_fixtures(Thread, _eternity, "enternity_thread"),
+    ids=str,
 )
 def enternity_thread(
     request: pytest.FixtureRequest,
@@ -150,6 +151,7 @@ def enternity_thread(
 @pytest.fixture(
     scope="session",
     params=thread_fixtures(Worker, _eternity, "enternity_worker"),
+    ids=str,
 )
 def enternity_worker(
     request: pytest.FixtureRequest,
@@ -157,7 +159,9 @@ def enternity_worker(
     return request.param.factory  # type: ignore[no-any-return]
 
 
-@pytest.fixture(scope="session", params=thread_pool_fixtures(ThreadPool))
+@pytest.fixture(
+    scope="session", params=thread_pool_fixtures(ThreadPool), ids=str
+)
 def thread_pool_type(
     request: pytest.FixtureRequest,
 ) -> Callable[..., ThreadPool]:
