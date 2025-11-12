@@ -4,6 +4,7 @@
 # 2025 Modified by x42005e1f
 
 import asyncio
+import inspect
 import threading
 from typing import (
     Any,
@@ -79,15 +80,15 @@ class Thread(Generic[R]):
         loop_initializer: Optional[LoopInitializer] = None,
         thread_target: Optional[Callable[..., Any]] = None,
     ) -> None:
-        if target is not None and not asyncio.iscoroutinefunction(target):
+        if target is not None and not inspect.iscoroutinefunction(target):
             raise ValueError("target must be coroutine function")
 
-        if initializer is not None and asyncio.iscoroutinefunction(
+        if initializer is not None and inspect.iscoroutinefunction(
             initializer
         ):
             raise ValueError("initializer must be synchronous function")
 
-        if loop_initializer is not None and asyncio.iscoroutinefunction(
+        if loop_initializer is not None and inspect.iscoroutinefunction(
             loop_initializer
         ):
             raise ValueError("loop_initializer must be synchronous function")
