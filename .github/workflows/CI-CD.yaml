@@ -28,7 +28,7 @@ jobs:
 
     strategy:
       matrix:
-        pyver: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        pyver: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.14t']
         no-extensions: ['', 'Y']
         os: [ubuntu, macos, windows]
         experimental: [false]
