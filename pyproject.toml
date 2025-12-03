@@ -1,6 +1,6 @@
 [project]
 name = "aiothreading"
-version = "0.1.6"
+dynamic = ["version"]
 description = "AsyncIO version of the standard threading module"
 readme = "README.md"
 authors = [
@@ -10,7 +10,6 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "aiologic>=0.15.0",
-    'deprecation-alias>=0.3.0'
 ]
 keywords=["aiothreading", "threading", "asyncio"]
 
@@ -25,6 +24,13 @@ classifiers=[
     "Programming Language :: Python :: 3.14",
 
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "aiothreading.__version__"}
+
+[build-system]
+requires = ["setuptools"]
+
 [project.urls]
     homepage = "https://github.com/Vizonex/aiothreading"
     repository = "https://github.com/Vizonex/aiothreading.git"
@@ -34,3 +40,12 @@ line-length = 79
 indent-width = 4
 target-version = "py310"
 fix = true
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "I",
+    "F"
+]
+

@@ -6,33 +6,25 @@
 import asyncio
 import os
 import sys
-from concurrent.futures import Future, InvalidStateError
-from functools import partial
-from types import TracebackType
-from typing import (
-    Any,
+from collections.abc import (
     AsyncIterable,
     AsyncIterator,
     Awaitable,
     Callable,
     Coroutine,
-    Dict,
     Generator,
     Iterable,
-    List,
-    Optional,
     Sequence,
-    TypeVar,
-    Union,
 )
+from concurrent.futures import Future, InvalidStateError
+from functools import partial
+from types import TracebackType
+from typing import Any, TypeVar
 
 from aiologic import Condition, CountdownEvent, SimpleQueue
 
 from .core import Thread
 from .types import LoopInitializer, ProxyException, R, T
-
-from deprecation_alias import deprecated
-
 
 MAX_TASKS_PER_CHILD = (
     0  # number of tasks to execute before recycling a child process
@@ -46,7 +38,7 @@ _T = TypeVar("_T")
 
 def _on_complete(
     loop: asyncio.AbstractEventLoop,
-    task: Optional[asyncio.Task[Any]],
+    task: asyncio.Task[Any] | None,
     future: Future[Any],
 ) -> None:
     if future.cancelled() and task is not None:
@@ -56,10 +48,10 @@ def _on_complete(
 async def _work(
     any_completed: Condition[None],
     all_completed: CountdownEvent,
-    exception_handler: Optional[Callable[[BaseException], None]],
+    exception_handler: Callable[[BaseException], None] | None,
     func: Callable[..., Coroutine[Any, Any, Any]],
     args: Sequence[Any],
-    kwargs: Dict[str, Any],
+    kwargs: dict[str, Any],
     future: Future[Any],
 ) -> None:
     try:
@@ -107,18 +99,17 @@ class ThreadPoolWorker(Thread[None]):
     def __init__(
         self,
         tx: SimpleQueue[
-            Optional[
-                tuple[
-                    Callable[..., Coroutine[Any, Any, Any]],
-                    Sequence[Any],
-                    Dict[str, Any],
-                    Future[Any],
-                ]
+            tuple[
+                Callable[..., Coroutine[Any, Any, Any]],
+                Sequence[Any],
+                dict[str, Any],
+                Future[Any],
             ]
+            | None
         ],
         concurrency: int = CHILD_CONCURRENCY,
         *,
-        exception_handler: Optional[Callable[[BaseException], None]] = None,
+        exception_handler: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(target=self.run, args=None, kwargs=None, **kwargs)
@@ -163,8 +154,11 @@ class ThreadPoolWorker(Thread[None]):
 
 class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
     """
-    Asynchronous proxy for map/starmap results. Can be awaited or used with `async for`.
+    Asynchronous proxy for map/starmap results. Can be awaited
+    or iterated over by using `async for`.
     """
+
+    __slots__ = "futures"
 
     def __init__(self, futures: Sequence[asyncio.Future[_T]]):
         self.futures = futures
@@ -196,7 +190,7 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
 
 # NOTE: Not very many things have changed from aiomultiprocess's
 # Pool Class Such as the removal of terminating since threads can't terminate
-# Pool was also renamed to ThreadPool so aiomultiprocess doesn't overlap itself...
+# Pool was also renamed to ThreadPool so aiomultiprocess doesn't overlap itself
 
 
 class ThreadPool:
@@ -204,14 +198,14 @@ class ThreadPool:
 
     def __init__(
         self,
-        threads: Optional[int] = None,
-        initializer: Optional[Callable[..., Any]] = None,
+        threads: int | None = None,
+        initializer: Callable[..., Any] | None = None,
         initargs: Sequence[Any] = (),
         # Scheduled for removal in soon as a performance optimization
         childconcurrency: int = CHILD_CONCURRENCY,
-        loop_initializer: Optional[LoopInitializer] = None,
-        exception_handler: Optional[Callable[[BaseException], None]] = None,
-    ):
+        loop_initializer: LoopInitializer | None = None,
+        exception_handler: Callable[[BaseException], None] | None = None,
+    ) -> None:
         if threads is None:
             if sys.version_info >= (3, 13):
                 cpu_count = os.process_cpu_count()
@@ -227,11 +221,12 @@ class ThreadPool:
         self.childconcurrency = childconcurrency
         self.exception_handler = exception_handler
 
-        # NOTE: Renamed processes to threads since were dealing with threads - Vizonex
+        # NOTE: Renamed processes to threads since were dealing with threads
+        # - Vizonex
 
         # Were going to use a list instead of a dictionary for initialization
         # This is more or less an optimization
-        self.threads: List[ThreadPoolWorker] = []
+        self.threads: list[ThreadPoolWorker] = []
         self.thread_count = threads
 
         self.running = True
@@ -242,9 +237,9 @@ class ThreadPool:
 
     async def __aexit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         """Automatically terminate the pool when falling out of scope."""
         self.terminate()
@@ -293,30 +288,10 @@ class ThreadPool:
 
         return asyncio.wrap_future(future)
 
-    @deprecated(
-        deprecated_in="0.1.5",
-        removed_in="0.1.9",
-        details="Use submit() method instead",
-    )
-    async def apply(
-        self,
-        func: Callable[..., Coroutine[Any, Any, R]],
-        args: Optional[Sequence[Any]] = None,
-        kwds: Optional[Dict[str, Any]] = None,
-    ) -> R:
-        """Run a single coroutine on the pool."""
-        if not self.running:
-            raise RuntimeError("pool is closed")
-
-        args = args or ()
-        kwds = kwds or {}
-
-        return await self.submit(func, *args, **kwds)
-
     def map(
         self,
         func: Callable[[T], Coroutine[Any, Any, R]],
-        iterable: Union[Sequence[T], Iterable[T]],
+        iterable: Sequence[T] | Iterable[T],
     ) -> ThreadPoolResult[R]:
         """Run a coroutine once for each item in the iterable."""
         if not self.running:
@@ -329,7 +304,7 @@ class ThreadPool:
     def starmap(
         self,
         func: Callable[..., Coroutine[Any, Any, R]],
-        iterable: Sequence[Sequence[T]],
+        iterable: Sequence[Sequence[T] | Iterable[T]],
     ) -> ThreadPoolResult[R]:
         """Run a coroutine once for each sequence of items in the iterable."""
         if not self.running:

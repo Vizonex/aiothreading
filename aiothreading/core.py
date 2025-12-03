@@ -4,21 +4,10 @@
 # 2025 Modified by x42005e1f
 
 import asyncio
-from inspect import iscoroutinefunction
 import threading
-from typing import (
-    Any,
-    Callable,
-    Coroutine,
-    Dict,
-    Generator,
-    Generic,
-    Literal,
-    NoReturn,
-    Optional,
-    Sequence,
-    Union,
-)
+from collections.abc import Callable, Coroutine, Generator, Sequence
+from inspect import iscoroutinefunction
+from typing import Any, Generic, Literal, NoReturn
 
 from aiologic import Event, Flag
 
@@ -56,7 +45,7 @@ def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
         if task.exception() is not None:
             loop.call_exception_handler(
                 {
-                    "message": "unhandled exception during run_async() shutdown",
+                    "message": "unhandled exception during run_async() shutdown",  # noqa: E501
                     "exception": task.exception(),
                     "task": task,
                 }
@@ -66,19 +55,21 @@ def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
 class Thread(Generic[R]):
     """Execute a coroutine on a spreate thread"""
 
+    __slots__ = ("unit", "aio_thread")
+
     def __init__(
         self,
         group: None = None,
-        target: Optional[Callable[..., Coroutine[Any, Any, R]]] = None,
-        name: Optional[str] = None,
-        args: Optional[Sequence[Any]] = None,
-        kwargs: Optional[Dict[str, Any]] = None,
+        target: Callable[..., Coroutine[Any, Any, R]] | None = None,
+        name: str | None = None,
+        args: Sequence[Any] | None = None,
+        kwargs: dict[str, Any] | None = None,
         *,
-        daemon: Optional[bool] = None,
-        initializer: Optional[Callable[..., Any]] = None,
+        daemon: bool | None = None,
+        initializer: Callable[..., Any] | None = None,
         initargs: Sequence[Any] = (),
-        loop_initializer: Optional[LoopInitializer] = None,
-        thread_target: Optional[Callable[..., Any]] = None,
+        loop_initializer: LoopInitializer | None = None,
+        thread_target: Callable[..., Any] | None = None,
     ) -> None:
         if target is not None and not iscoroutinefunction(target):
             raise ValueError("target must be coroutine function")
@@ -111,7 +102,8 @@ class Thread(Generic[R]):
         )
 
     def __await__(self) -> Any:
-        """Enable awaiting of the thread result by chaining to `start()` & `join()`."""
+        """Enable awaiting of the thread result
+        by chaining to `start()` & `join()`."""
         if not self.is_started():
             self.start()
 
@@ -120,8 +112,9 @@ class Thread(Generic[R]):
     @staticmethod
     def run_async(
         unit: Unit[R], *, _set_complete_event: bool = True
-    ) -> Union[R, Literal[StopEnum.PREMATURE_STOP]]:
-        """Initialize the child thread and event loop, then execute the coroutine."""
+    ) -> R | Literal[StopEnum.PREMATURE_STOP]:
+        """Initializes the child thread and event loop,
+        then executes the coroutine."""
         try:
             if unit.loop_initializer is None:
                 loop = asyncio.new_event_loop()
@@ -168,8 +161,9 @@ class Thread(Generic[R]):
         """Start the child thread."""
         return self.aio_thread.start()
 
-    async def join(self, timeout: Optional[float] = None) -> Any:
-        """Wait for the process to finish execution without blocking the main thread."""
+    async def join(self, timeout: float | None = None) -> Any:
+        """Wait for the process to finish execution without
+        blocking the main thread."""
         if not self.is_started():
             raise RuntimeError("must start thread before joining it")
 
@@ -184,12 +178,12 @@ class Thread(Generic[R]):
         return self.aio_thread.name
 
     @property
-    def ident(self) -> Optional[int]:
+    def ident(self) -> int | None:
         """Thread ID of child, or None if not started."""
         return self.aio_thread.ident
 
     @property
-    def native_id(self) -> Optional[int]:
+    def native_id(self) -> int | None:
         """Native thread ID of child, or None if not started."""
         return self.aio_thread.native_id
 
@@ -230,12 +224,35 @@ class Thread(Generic[R]):
 
 
 class Worker(Thread[R]):
-    # TODO: fix __init__ and all arguments to it.
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, thread_target=None, **kwargs)
+    def __init__(
+        self,
+        group: None = None,
+        target: Callable[..., Coroutine[Any, Any, R]] | None = None,
+        name: str | None = None,
+        args: Sequence[Any] | None = None,
+        kwargs: dict[str, Any] | None = None,
+        *,
+        daemon: bool | None = None,
+        initializer: Callable[..., Any] | None = None,
+        initargs: Sequence[Any] = (),
+        loop_initializer: LoopInitializer | None = None,
+    ) -> None:
+        super().__init__(
+            group,
+            target,
+            name,
+            args,
+            kwargs,
+            daemon=daemon,
+            initializer=initializer,
+            initargs=initargs,
+            loop_initializer=loop_initializer,
+            thread_target=None,
+        )
 
     def __await__(self) -> Generator[Any, Any, R]:
-        """Enable awaiting of the thread result by chaining to `start()` & `join()`."""
+        """Enable awaiting of the thread result by chaining to
+        `start()` & `join()`."""
         if not self.is_started():
             self.start()
 
@@ -244,8 +261,9 @@ class Worker(Thread[R]):
     @staticmethod
     def run_async(
         unit: Unit[R], *, _set_complete_event: bool = True
-    ) -> Union[R, Literal[StopEnum.PREMATURE_STOP]]:
-        """Initialize the child thread and event loop, then execute the coroutine."""
+    ) -> R | Literal[StopEnum.PREMATURE_STOP]:
+        """Initializes the child thread and event loop,
+        then executes the coroutine."""
         try:
             unit.namespace.result = result = Thread.run_async(
                 unit,
@@ -267,7 +285,7 @@ class Worker(Thread[R]):
 
         return result
 
-    async def join(self, timeout: Optional[float] = None) -> R:
+    async def join(self, timeout: float | None = None) -> R:
         """Wait for the worker to finish, and return the final result."""
         await super().join(timeout)
         return self.result
@@ -295,7 +313,7 @@ class Worker(Thread[R]):
         return result
 
     @property
-    def exception(self) -> Optional[BaseException]:
+    def exception(self) -> BaseException | None:
         """Easy access to the exception from the coroutine."""
         if not self.is_stopped():
             raise ValueError("coroutine not completed")
