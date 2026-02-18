@@ -22,6 +22,4 @@ __all__ = (
     "ThreadPool",
     "ThreadPoolResult",
     "Worker",
-    "__authors__",
-    "__version__",
 )
