@@ -158,7 +158,7 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
     or iterated over by using `async for`.
     """
 
-    __slots__ = "futures"
+    __slots__ = ("futures", "__weakref__")
 
     def __init__(self, futures: Sequence[asyncio.Future[_T]]):
         self.futures = futures
@@ -195,6 +195,18 @@ class ThreadPoolResult(Awaitable[Sequence[_T]], AsyncIterable[_T]):
 
 class ThreadPool:
     """Execute coroutines on a pool of threads."""
+
+    __slots__ = (
+        "__weakref__",
+        "initializer",
+        "initargs",
+        "loop_initializer",
+        "childconcurrency",
+        "exception_handler",
+        "threads",
+        "thread_count",
+        "running",
+    )
 
     def __init__(
         self,

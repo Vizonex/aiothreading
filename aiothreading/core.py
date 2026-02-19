@@ -55,7 +55,7 @@ def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
 class Thread(Generic[R]):
     """Execute a coroutine on a spreate thread"""
 
-    __slots__ = ("unit", "aio_thread")
+    __slots__ = ("unit", "aio_thread", "__weakref__")
 
     def __init__(
         self,
