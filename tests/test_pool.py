@@ -2,9 +2,9 @@
 
 # pylint: disable=import-error,import-outside-toplevel
 
-import anyio
-from typing import Callable
+from collections.abc import Callable
 
+import anyio
 import pytest
 
 from aiothreading import ThreadPool

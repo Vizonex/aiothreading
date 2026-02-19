@@ -1,15 +1,15 @@
 import asyncio
 import sys
 import threading
-from typing import Callable, Coroutine, Any, Generic
+from dataclasses import dataclass
+from functools import partial
+from importlib import import_module
+from typing import Any, Callable, Coroutine, Generic
 
 import pytest
 
 from aiothreading import Thread, ThreadPool, Worker
 from aiothreading.types import R
-from dataclasses import dataclass
-from importlib import import_module
-from functools import partial
 
 UVLOOP_MODULE = "uvloop" if sys.platform != "win32" else "winloop"
 

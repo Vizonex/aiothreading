@@ -4,21 +4,9 @@
 
 import enum
 from asyncio import AbstractEventLoop, Task
+from collections.abc import Callable, Coroutine, Sequence
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Callable,
-    Coroutine,
-    Dict,
-    Generic,
-    Literal,
-    NewType,
-    Optional,
-    Sequence,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Any, Generic, Literal, NewType, TypeVar
 
 from aiologic import Event, Flag, SimpleQueue
 
@@ -33,8 +21,8 @@ QueueID = NewType("QueueID", int)
 TracebackStr = str
 
 LoopInitializer = Callable[..., AbstractEventLoop]
-PoolTask = Optional[Tuple[TaskID, Callable[..., R], Sequence[T], Dict[str, T]]]
-PoolResult = Tuple[TaskID, Optional[R], Optional[TracebackStr]]
+PoolTask = tuple[TaskID, Callable[..., R], Sequence[T], dict[str, T]] | None
+PoolResult = tuple[TaskID, R | None, TracebackStr | None]
 
 
 class StopEnum(enum.Enum):
@@ -42,8 +30,8 @@ class StopEnum(enum.Enum):
 
 
 class Namespace(Generic[R]):
-    result: Union[R, Literal[StopEnum.PREMATURE_STOP]]
-    exception: Union[Optional[BaseException], Literal[StopEnum.PREMATURE_STOP]]
+    result: R | Literal[StopEnum.PREMATURE_STOP]
+    exception: BaseException | None | Literal[StopEnum.PREMATURE_STOP]
 
 
 @dataclass
@@ -52,13 +40,13 @@ class Unit(Generic[R]):
 
     target: Callable[..., Coroutine[Any, Any, R]]
     args: Sequence[Any]
-    kwargs: Dict[str, Any]
+    kwargs: dict[str, Any]
     namespace: Namespace[R]
-    stop_flag: Flag[Optional[Tuple[AbstractEventLoop, Task[R]]]]
+    stop_flag: Flag[tuple[AbstractEventLoop, Task[R]] | None]
     complete_event: Event
-    initializer: Optional[Callable[..., Any]] = None
+    initializer: Callable[..., Any] | None = None
     initargs: Sequence[Any] = ()
-    loop_initializer: Optional[LoopInitializer] = None
+    loop_initializer: LoopInitializer | None = None
 
 
 class ProxyException(Exception):
