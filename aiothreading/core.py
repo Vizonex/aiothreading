@@ -32,11 +32,7 @@ def _asyncio_run(unit: Unit[R]) -> R | Literal[StopEnum.PREMATURE_STOP]:
         if unit.initializer:
             unit.initializer(*unit.initargs)
 
-        task: asyncio.Task[R] | None = None
-
-        async def main() -> R:
-            nonlocal task
-
+        async def main() -> R | Literal[StopEnum.PREMATURE_STOP]:
             loop = asyncio.get_running_loop()
             task = asyncio.current_task()
             assert task is not None
@@ -44,18 +40,19 @@ def _asyncio_run(unit: Unit[R]) -> R | Literal[StopEnum.PREMATURE_STOP]:
             if not unit.stop_flag.set((loop, task)):
                 task.cancel()
 
-            return await unit.target(*unit.args, **unit.kwargs)
+            try:
+                return await unit.target(*unit.args, **unit.kwargs)
+            except asyncio.CancelledError:
+                # Suppress MainTask's cancellation only...
+                # On Python<3.11, the method is backported.
+                if not task.cancelling():  # type: ignore[attr-defined]
+                    raise
 
-        try:
-            return runner.run(main())
-        except asyncio.CancelledError:
-            # Suppress MainTask's cancellation only...
-            if task is not None and not task.cancelled():
-                raise
+                return StopEnum.PREMATURE_STOP
+            finally:
+                del task  # break reference cycles
 
-            return StopEnum.PREMATURE_STOP
-        finally:
-            del task  # break reference cycles
+        return runner.run(main())
 
 
 async def not_implemented(*args: Any, **kwargs: Any) -> NoReturn:
