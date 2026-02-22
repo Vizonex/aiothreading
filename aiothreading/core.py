@@ -4,6 +4,7 @@
 # 2025 Modified by x42005e1f
 
 import asyncio
+import sys
 import threading
 from collections.abc import Callable, Coroutine, Generator, Sequence
 from inspect import iscoroutinefunction
@@ -20,36 +21,46 @@ from .types import (
     Unit,
 )
 
+if sys.version_info >= (3, 11):
+    from asyncio import Runner
+else:
+    from taskgroup import Runner
+
+
+def _asyncio_run(unit: Unit[R]) -> R | Literal[StopEnum.PREMATURE_STOP]:
+    with Runner(loop_factory=unit.loop_initializer) as runner:
+        if unit.initializer:
+            unit.initializer(*unit.initargs)
+
+        task: asyncio.Task[R] | None = None
+
+        async def main() -> R:
+            nonlocal task
+
+            loop = asyncio.get_running_loop()
+            task = asyncio.current_task()
+            assert task is not None
+
+            if not unit.stop_flag.set((loop, task)):
+                task.cancel()
+
+            return await unit.target(*unit.args, **unit.kwargs)
+
+        try:
+            return runner.run(main())
+        except asyncio.CancelledError:
+            # Suppress MainTask's cancellation only...
+            if task is not None and not task.cancelled():
+                raise
+
+            return StopEnum.PREMATURE_STOP
+        finally:
+            del task  # break reference cycles
+
 
 async def not_implemented(*args: Any, **kwargs: Any) -> NoReturn:
     """Default function to call when none given."""
     raise NotImplementedError
-
-
-# asyncio.runners._cancel_all_tasks
-def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
-    to_cancel = asyncio.all_tasks(loop)
-
-    if not to_cancel:
-        return
-
-    for task in to_cancel:
-        task.cancel()
-
-    loop.run_until_complete(asyncio.gather(*to_cancel, return_exceptions=True))
-
-    for task in to_cancel:
-        if task.cancelled():
-            continue
-
-        if task.exception() is not None:
-            loop.call_exception_handler(
-                {
-                    "message": "unhandled exception during run_async() shutdown",  # noqa: E501
-                    "exception": task.exception(),
-                    "task": task,
-                }
-            )
 
 
 class Thread(Generic[R]):
@@ -116,43 +127,7 @@ class Thread(Generic[R]):
         """Initializes the child thread and event loop,
         then executes the coroutine."""
         try:
-            if unit.loop_initializer is None:
-                loop = asyncio.new_event_loop()
-            else:
-                loop = unit.loop_initializer()
-
-            asyncio.set_event_loop(loop)
-
-            try:
-                if unit.initializer:
-                    unit.initializer(*unit.initargs)
-
-                task: asyncio.Task[R] = loop.create_task(
-                    unit.target(
-                        *unit.args,
-                        **unit.kwargs,
-                    )
-                )
-
-                if not unit.stop_flag.set((loop, task)):
-                    task.cancel()
-
-                try:
-                    return loop.run_until_complete(task)
-                except asyncio.CancelledError:
-                    # Suppress MainTask's cancellation only...
-                    if not task.cancelled():
-                        raise
-
-                    return StopEnum.PREMATURE_STOP
-            finally:
-                try:
-                    _cancel_all_tasks(loop)
-                    loop.run_until_complete(loop.shutdown_asyncgens())
-                    loop.run_until_complete(loop.shutdown_default_executor())
-                finally:
-                    asyncio.set_event_loop(None)
-                    loop.close()
+            return _asyncio_run(unit)  # type: ignore[arg-type]
         finally:
             if _set_complete_event:
                 unit.complete_event.set()
