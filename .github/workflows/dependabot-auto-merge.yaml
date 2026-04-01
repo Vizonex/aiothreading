@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     # We can be somewhat paitent here. 
-    # But the workflows are extermely fast and takes no more than 2 minutes to complete on success.
-    timeout-minutes: 2
+    # But the workflows are extremely fast and takes no more than 2 minutes to complete on success.
+    timeout-minutes: 4
     steps:
       - name: Dependabot metadata
         id: metadata
