@@ -8,7 +8,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     # We can be somewhat paitent here. 
     # But the workflows are extremely fast and takes no more than 4 minutes to complete on success.
     timeout-minutes: 4
