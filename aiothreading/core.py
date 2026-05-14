@@ -4,6 +4,7 @@
 # 2025 Modified by x42005e1f
 
 import asyncio
+import sys
 import threading
 from collections.abc import Callable, Coroutine, Generator, Sequence
 from inspect import iscoroutinefunction
@@ -41,9 +42,12 @@ def _asyncio_run(unit: Unit[R]) -> R | Literal[StopEnum.PREMATURE_STOP]:
         except asyncio.CancelledError:
             # Suppress MainTask's cancellation only...
             # On Python<3.11, the method is backported.
-            if not task.cancelling():  # type: ignore[attr-defined]
-                raise
-
+            if sys.version_info >= (3, 11):
+                if not task.cancelling():  # type: ignore[attr-defined]
+                    raise
+            else:
+                if not task.cancelled():
+                    raise
             return StopEnum.PREMATURE_STOP
         finally:
             del task  # break reference cycles
