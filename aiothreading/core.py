@@ -4,12 +4,12 @@
 # 2025 Modified by x42005e1f
 
 import asyncio
-import sys
 import threading
 from collections.abc import Callable, Coroutine, Generator, Sequence
 from inspect import iscoroutinefunction
 from typing import Any, Generic, Literal, NoReturn
 
+import anyio
 from aiologic import Event, Flag
 
 from .types import (
@@ -21,38 +21,43 @@ from .types import (
     Unit,
 )
 
-if sys.version_info >= (3, 11):
-    from asyncio import Runner
-else:
-    from taskgroup import Runner
-
 
 def _asyncio_run(unit: Unit[R]) -> R | Literal[StopEnum.PREMATURE_STOP]:
-    with Runner(loop_factory=unit.loop_initializer) as runner:
-        if unit.initializer:
-            unit.initializer(*unit.initargs)
+    if unit.initializer:
+        unit.initializer(*unit.initargs)
 
-        async def main() -> R | Literal[StopEnum.PREMATURE_STOP]:
-            loop = asyncio.get_running_loop()
-            task = asyncio.current_task()
-            assert task is not None
+    # TODO: When Anyio gets it's next update
+    # It will have a Future Object and new TaskHandle
+    # SEE: https://github.com/agronholm/anyio/pull/1146
 
-            if not unit.stop_flag.set((loop, task)):
-                task.cancel()
+    async def main(unit: Unit[R]) -> R | Literal[StopEnum.PREMATURE_STOP]:
+        loop = asyncio.get_running_loop()
+        task = asyncio.current_task()
+        assert task is not None
+        if not unit.stop_flag.set((loop, task)):
+            task.cancel()
+        try:
+            return await unit.target(*unit.args, **unit.kwargs)
+        except asyncio.CancelledError:
+            # Suppress MainTask's cancellation only...
+            # On Python<3.11, the method is backported.
+            if not task.cancelling():  # type: ignore[attr-defined]
+                raise
 
-            try:
-                return await unit.target(*unit.args, **unit.kwargs)
-            except asyncio.CancelledError:
-                # Suppress MainTask's cancellation only...
-                # On Python<3.11, the method is backported.
-                if not task.cancelling():  # type: ignore[attr-defined]
-                    raise
+            return StopEnum.PREMATURE_STOP
+        finally:
+            del task  # break reference cycles
 
-                return StopEnum.PREMATURE_STOP
-            finally:
-                del task  # break reference cycles
-
-        return runner.run(main())
+    # For now the only acceptable backend is asyncio.
+    # In a later update when anyio adds in a `TaskGroup.create_task()``
+    # function, more of anyio's features will be used and
+    # trio support will be added in.
+    return anyio.run(
+        main,
+        unit,
+        backend_options={"loop_factory": unit.initializer},
+        backend="asyncio",
+    )
 
 
 async def not_implemented(*args: Any, **kwargs: Any) -> NoReturn:
@@ -65,6 +70,7 @@ class Thread(Generic[R]):
 
     __slots__ = ("unit", "aio_thread", "__weakref__")
 
+    # TODO: Rename loop_initializer to loop_factory, be less confusing.
     def __init__(
         self,
         group: None = None,
