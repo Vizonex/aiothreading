@@ -11,7 +11,7 @@ from .pool import ThreadPool, ThreadPoolResult
 from .types import PrematureStopException, QueueID, TaskID
 
 __authors__ = ["Vizonex", "x42005e1f"]
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 
 __all__ = (
