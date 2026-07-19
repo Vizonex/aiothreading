@@ -34,7 +34,7 @@ class Namespace(Generic[R]):
     exception: BaseException | None | Literal[StopEnum.PREMATURE_STOP]
 
 
-@dataclass
+@dataclass(slots=True, weakref_slot=True)  # type: ignore[call-overload]
 class Unit(Generic[R]):
     """Container for what to call on the child thread."""
 
