@@ -34,7 +34,8 @@ class Namespace(Generic[R]):
     exception: BaseException | None | Literal[StopEnum.PREMATURE_STOP]
 
 
-@dataclass
+# TODO: in 3.11+ reapply weakref_slot argument.
+@dataclass(slots=True)
 class Unit(Generic[R]):
     """Container for what to call on the child thread."""
 
