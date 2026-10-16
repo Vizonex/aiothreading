@@ -4,7 +4,6 @@
 # 2025 Modified by x42005e1f
 
 import asyncio
-import sys
 import threading
 from collections.abc import Callable, Coroutine, Generator, Sequence
 from inspect import iscoroutinefunction
@@ -21,14 +20,9 @@ from .types import (
     Unit,
 )
 
-if sys.version_info >= (3, 11):
-    from asyncio import Runner
-else:
-    from taskgroup import Runner
-
 
 def _asyncio_run(unit: Unit[R]) -> R | Literal[StopEnum.PREMATURE_STOP]:
-    with Runner(loop_factory=unit.loop_initializer) as runner:
+    with asyncio.Runner(loop_factory=unit.loop_initializer) as runner:
         if unit.initializer:
             unit.initializer(*unit.initargs)
 
@@ -45,7 +39,7 @@ def _asyncio_run(unit: Unit[R]) -> R | Literal[StopEnum.PREMATURE_STOP]:
             except asyncio.CancelledError:
                 # Suppress MainTask's cancellation only...
                 # On Python<3.11, the method is backported.
-                if not task.cancelling():  # type: ignore[attr-defined]
+                if not task.cancelling():
                     raise
 
                 return StopEnum.PREMATURE_STOP

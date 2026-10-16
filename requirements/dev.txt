@@ -1,5 +1,6 @@
 pytest
 anyio
 async-timeout
+pre-commit
 winloop; platform_system == "Windows"
 uvloop; platform_system != "Windows"

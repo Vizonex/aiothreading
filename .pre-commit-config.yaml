@@ -8,10 +8,9 @@ repos:
   rev: v1.17.0
   hooks:
   -   id: mypy
-      args: [--python-version, "3.10", --strict]
+      args: [--python-version, "3.11", --strict]
       additional_dependencies:  # see pre-commit/pre-commit#730
       - aiologic>=0.15.0
-      - taskgroup>=0.2.2
       - async-timeout
       - pytest
       - anyio
